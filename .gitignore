@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# the ONE real secret: the Firebase service-account key used by scripts/export.js
+# never commit this. If it ever lands on GitHub, delete the key in the Google Cloud console.
+*service-account*.json
+serviceAccountKey.json
+firebase-service-account.json
+.env
+
+# Firebase CLI local state
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*-debug.log
+
+# test output
+test-results/
+playwright-report/
+playwright/.cache/
+
+# exported raw data: decide deliberately whether to commit (see docs/student-guide.md)
+# data/raw/
+
+# OS / editor
+.DS_Store
+.Rhistory
+.Rproj.user/
+*.Rproj
