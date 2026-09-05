@@ -28,3 +28,6 @@ playwright/.cache/
 .Rhistory
 .Rproj.user/
 *.Rproj
+
+# agent worktrees
+.claude/worktrees/

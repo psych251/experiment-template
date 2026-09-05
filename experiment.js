@@ -46,7 +46,10 @@ const EXPERIMENT = {
 
 // `?emulator=1` in the URL sends data to the local emulator instead of the real project.
 // Used by `npm test`; handy for development too (start it with `npm run emulators`).
-const USE_EMULATOR = new URLSearchParams(window.location.search).get("emulator") === "1";
+const URL_PARAMS = new URLSearchParams(window.location.search);
+const USE_EMULATOR = URL_PARAMS.get("emulator") === "1";
+// `?chunk_size=N` overrides the setting above; used by the test suite to exercise chunked writes.
+const CHUNK_SIZE = Number(URL_PARAMS.get("chunk_size")) || EXPERIMENT.chunk_size;
 
 // ---------------------------------------------------------------------------
 // Boot: connect the saver first so even a crash in the first trial gets logged.
@@ -54,7 +57,7 @@ const USE_EMULATOR = new URLSearchParams(window.location.search).get("emulator")
 (async function main() {
   const saver = await DataSaver.init({
     experiment_id: EXPERIMENT.id,
-    chunk_size: EXPERIMENT.chunk_size,
+    chunk_size: CHUNK_SIZE,
     save_full_data_at_end: EXPERIMENT.save_full_data_at_end,
     use_emulator: USE_EMULATOR,
   });
@@ -66,21 +69,31 @@ const USE_EMULATOR = new URLSearchParams(window.location.search).get("emulator")
     on_data_update: (trial) => saver.onTrial(trial),
     on_finish: async () => {
       const el = jsPsych.getDisplayElement();
-      el.innerHTML = '<p class="thanks">Saving your responses…</p>';
+      el.innerHTML = '<div id="finish-message"><p class="thanks">Saving your responses…</p></div>';
+      // finish() flushes remaining trials, marks the participant complete, and (only if
+      // saving failed) appends a download-fallback box to the display element.
       const result = await saver.finish(jsPsych);
+      const consentRow = jsPsych.data.get().filter({ task: "consent" }).values()[0];
+      const consented = !consentRow || consentRow.consented !== false;
+      const msg = document.getElementById("finish-message");
+
+      if (!consented) {
+        msg.innerHTML = "<h2 class='thanks'>Thank you</h2><p class='thanks'>You chose not to participate. " +
+          "You may close this window" + (EXPERIMENT.prolific_completion_code ? " and return the study on Prolific" : "") + ".</p>";
+        return;
+      }
       if (result.ok && EXPERIMENT.prolific_completion_code) {
+        msg.innerHTML = "<p class='thanks'>Saved. Returning you to Prolific…</p>";
         window.location.href =
           "https://app.prolific.com/submissions/complete?cc=" + EXPERIMENT.prolific_completion_code;
         return;
       }
-      const note = result.ok
-        ? "<p class='thanks'>Your responses were saved. Thank you for participating!</p>"
-        : ""; // saver already rendered the download fallback
-      el.innerHTML = "<h2 class='thanks'>All done</h2>" + note +
+      msg.innerHTML =
+        "<h2 class='thanks'>All done</h2>" +
+        (result.ok ? "<p class='thanks'>Your responses were saved. Thank you for participating!</p>" : "") +
         (EXPERIMENT.prolific_completion_code
           ? "<p class='thanks'>Your completion code is <strong>" + EXPERIMENT.prolific_completion_code + "</strong>.</p>"
-          : "") +
-        (result.ok ? "" : document.getElementById("data-saver-fallback")?.outerHTML || "");
+          : "");
     },
   });
 

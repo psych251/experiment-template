@@ -131,6 +131,28 @@ test.describe("experiment", () => {
     expect(demo.response.age).toBe(34);
   });
 
+  test("chunked writes (chunk_size > 1) save every trial", async ({ page }) => {
+    test.skip(!EMULATOR, "needs the Firestore emulator");
+    await page.goto("/?emulator=1&chunk_size=5");
+    await page.waitForFunction(() => window.__saver && window.__saver.uid);
+    await runThroughExperiment(page);
+    const uid = await page.evaluate(() => window.__saver.uid);
+    const p = decodeFields((await fsGet(`experiments/${EXPERIMENT_ID}/participants/${uid}`)).body.fields);
+    const chunks = await fsGet(`experiments/${EXPERIMENT_ID}/participants/${uid}/trials?pageSize=500`);
+    const docs = (chunks.body.documents || []).map((d) => decodeFields(d.fields));
+    expect(docs.length).toBe(Math.ceil(p.n_trials / 5));
+    const indices = docs.flatMap((d) => d.trials).map((t) => t.trial_index).sort((a, b) => a - b);
+    expect(indices).toEqual([...Array(p.n_trials).keys()]);
+  });
+
+  test("declining consent ends the study without a thank-you-for-your-data message", async ({ page }) => {
+    await page.goto(EMULATOR ? "/?emulator=1" : "/");
+    await page.waitForFunction(() => window.__saver && window.__saver.uid);
+    await page.getByRole("button", { name: "I do not agree" }).click();
+    await expect(page.getByText("You chose not to participate")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Your responses were saved")).toHaveCount(0);
+  });
+
   test("security rules reject reads and writes to other participants", async ({ page }) => {
     test.skip(!EMULATOR, "needs the Firestore emulator");
     await page.goto("/?emulator=1");

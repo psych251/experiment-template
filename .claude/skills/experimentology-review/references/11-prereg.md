@@ -23,11 +23,11 @@
 10. Are all departures from the plan disclosed with reasons (e.g., a deviations table), ideally with the planned analysis also reported as a robustness check? (§11.3 How to preregister)
 11. Are hypotheses presented as a priori only if they appear in the preregistration, with post hoc ones labeled as such? (§11.1.2 Hypothesizing after results are known)
 12. Does the script avoid the "hot or cold" pattern: no loops over alternative DVs, subgroups, covariates, or exclusion thresholds with only the significant one reported? Unregistered subgroup analyses must be labeled exploratory. (§11.1.1 Data-dependent analysis)
-13. Where several analytic choices are equally justifiable (e.g., missing data), is a robustness check or multiverse prespecified rather than chosen after seeing results? (§11.2.1 Preregistration and friends: A toolbox to address researcher degrees of freedom)
+13. Where several analytic choices are equally justifiable (e.g., missing data), is a robustness check or multiverse prespecified rather than chosen after seeing results? (§11.2 depth box: Preregistration and friends)
 
 ## Common mistakes the book warns about
 
-- Reporting an analysis chosen from many paths (splitting by usage with covariates) without the simple primary causal effect, as in the Bedtime Math case study. (§11.0 Undisclosed analytic flexibility? case study)
+- Reporting an analysis chosen from many paths (splitting by usage with covariates) without the simple primary causal effect, as in the Bedtime Math case study. (§11 case study: Undisclosed analytic flexibility?)
 - Correcting only for the comparisons reported, when corrections must cover every path that could have been taken. (§11.1 Lost in a garden of forking paths)
 - Playing "hot or cold" with analysis decisions until the result is favorable, then reporting only that path (p-hacking). (§11.1.1 Data-dependent analysis)
 - Inventing a post hoc explanation to justify an unplanned subgroup analysis and presenting it as predicted (HARKing). (§11.1.2 Hypothesizing after results are known)
