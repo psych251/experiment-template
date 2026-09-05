@@ -9,7 +9,9 @@ module.exports = defineConfig({
   retries: 0,
   reporter: [["list"]],
   use: {
-    baseURL: "http://localhost:8000",
+    // Tests get their own port so a stray `npm start` (8000) can never be mistaken for the
+    // tree under test; reuseExistingServer is off for the same reason.
+    baseURL: "http://localhost:8017",
     headless: true,
     // Optional: point at a system Chromium instead of the Playwright-managed one
     // (used in CI containers that ship their own browser).
@@ -19,8 +21,9 @@ module.exports = defineConfig({
   },
   webServer: {
     command: "node scripts/serve.js",
-    port: 8000,
-    reuseExistingServer: true,
+    port: 8017,
+    env: { PORT: "8017" },
+    reuseExistingServer: false,
     timeout: 20000,
   },
 });

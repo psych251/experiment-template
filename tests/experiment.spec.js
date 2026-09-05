@@ -26,7 +26,8 @@ async function runThroughExperiment(page) {
   // 3. demographics (SurveyJS)
   await page.locator('input[type="number"]').fill("34");
   await page.getByText("Woman", { exact: true }).click();
-  await page.getByText("Yes", { exact: true }).click();
+  // SurveyJS boolean switches render "Yes" twice once toggled; scope to the question.
+  await page.locator('[data-name="native_english"]').getByText("Yes", { exact: true }).first().click();
   await page.locator('input[value="Continue"]').click();
   // 4. framing
   await page.getByRole("button", { name: "Program A" }).click();

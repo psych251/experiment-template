@@ -133,7 +133,8 @@ const CHUNK_SIZE = Number(URL_PARAMS.get("chunk_size")) || EXPERIMENT.chunk_size
     on_finish: (data) => {
       data.consented = data.response === 0;
       if (!data.consented) {
-        jsPsych.abortExperiment("<p>You did not consent to participate. You may close this window.</p>");
+        // No end message here: jsPsych would paint it over the screen that on_finish renders.
+        jsPsych.abortExperiment();
       }
     },
   };

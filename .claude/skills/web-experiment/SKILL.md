@@ -24,18 +24,35 @@ in `src/save.js` and must not be bypassed.
    `package.json` devDependencies, add a line to `scripts/vendor.js`, run
    `npm install && npm run vendor`, add the `<script>` tag to `index.html`. Never use CDN URLs.
 3. **Write the timeline** following the conventions below. Keep the consent trial first and
-   the debrief trial last; change only the contact email in the consent text.
+   the debrief trial last. The consent *text* is fixed (only the contact email changes); the
+   welcome instructions, task instructions, and debrief prose must be rewritten for the new
+   study.
+   - **Between-subjects factor?** Keep the `condition` pattern from the demo. **None?** Delete
+     the demo's `condition` assignment, drop the `condition` assertions in the test, and record
+     another participant-level fact instead (e.g. `design: "within-subjects"`, key mapping).
+     `scripts/export.js` tolerates a missing `condition` column.
+   - When replacing the demo entirely, also retarget `analysis/analysis.Rmd`, `README.md`, and
+     `docs/student-guide.md`, and `grep -rn framing-demo` to catch stale ids.
 4. **Stimuli**: put files in `stimuli/` and load with the `preload` plugin as the first trial
    after consent. Reference them with relative paths (`stimuli/img1.png`, no leading slash)
    because GitHub Pages serves the site under `/<repo>/`. Keep the repo under a few hundred MB;
    do not use Git LFS (Pages does not serve LFS files).
 5. **Update the robot** in `tests/experiment.spec.js` (`runThroughExperiment`) so it clicks
-   through the new flow, and extend the assertions to check the new trial fields.
+   through the new flow, and extend the assertions to check the new trial fields. Robot tips:
+   - Put a `data-*` attribute on keyboard-trial stimuli (`<div class="stimulus" data-ink="red">`)
+     and read it, instead of parsing text; then `waitFor({ state: "detached" })` before the next trial.
+   - SurveyJS: scope locators to the question, `page.locator('[data-name="native_english"]').getByText("Yes").first()`.
+     A toggled boolean renders its label twice, so a bare `getByText("Yes")` becomes ambiguous.
+   - Make the robot answer at least one trial wrong and let one time out, and assert on the
+     resulting `correct` / `timed_out` fields.
 6. **Run `npm test`.** It must pass before you tell the student the experiment is done. If
    Java is missing the emulator cannot start; then run `npx playwright test` (offline mode)
-   and say so explicitly.
-7. **Walk through it yourself** with `npm start` plus a Playwright script or the browser, and
-   report anything that looks wrong (timing, layout on a laptop-sized window, typos).
+   and say so explicitly. In containers that ship their own Chromium set
+   `PLAYWRIGHT_CHROMIUM_PATH`. Tests serve the tree on port 8017 and refuse to reuse another
+   server, so a "port in use" error means a stale process, not a code problem.
+7. **Walk through it yourself** with `npm start` and a Playwright script: at minimum one
+   1280x720 screenshot of every new screen type, one timed-out trial, one wrong answer.
+   Report anything that looks wrong (timing, layout on a laptop-sized window, typos).
 
 ## Conventions in this template
 
@@ -77,6 +94,16 @@ stimulus: () => `<p>${jsPsych.evaluateTimelineVariable("word")}</p>` // inside a
 // conditional / looping
 { timeline: [...], conditional_function: () => cond }
 { timeline: [...], loop_function: (data) => data.values()[0].correct === false }
+
+// balanced item lists (shuffled): 4 copies of each congruent item, 2 of each incongruent
+const items = jsPsych.randomization.repeat(congruent, 4).concat(jsPsych.randomization.repeat(incongruent, 2));
+
+// per-trial feedback: read the previous trial inside a stimulus *function*
+{ type: jsPsychHtmlKeyboardResponse, choices: "NO_KEYS", trial_duration: 800,
+  stimulus: () => (jsPsych.data.getLastTrialData().values()[0].correct ? "Correct" : "Incorrect") }
+
+// timeouts: with trial_duration set, no response gives response: null and rt: null;
+// keys not in `choices` are ignored.
 
 // data
 jsPsych.data.addProperties({ participant_id, condition });
