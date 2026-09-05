@@ -15,7 +15,7 @@ experiments/{id}/errors/…                       uncaught JS errors with uid + 
 ```
 
 `uid` is the anonymous auth id, unique per browser session. A participant who reloads the
-page gets a new uid: two partial records. Use `prolific_pid` to reconcile.
+page gets a new uid: two partial records. Use `identifiers.csv` (Prolific id) to reconcile.
 
 ## Export
 
@@ -28,7 +28,9 @@ page gets a new uid: two partial records. Use `prolific_pid` to reconcile.
    npm run export -- --experiment <EXPERIMENT.id> --key <path-to-key>
    ```
    Output in `data/raw/<id>/`: `participants.csv`, `trials.csv` (long: one row per jsPsych
-   trial), `errors.csv`, `export.json` (verbatim dump).
+   trial), `errors.csv`, `export.json` (verbatim dump), and `identifiers.csv` (participant id
+   to Prolific ids; gitignored, never commit, never paste in chat). The committed files contain
+   no Prolific ids, URL parameters, or IP addresses.
 3. Sanity-check the export: number of participants vs. Prolific's count; `completed` rate;
    `n_trials` per participant equal to the timeline length; `trials_source` should be
    `chunks` (if it is `full_data`, incremental writes failed for that participant, worth a look
@@ -67,7 +69,6 @@ after `npx firebase login`. Never delete anything without the student naming the
 - Read every free-text column (`comments`, "other" answers) for names, emails, or anything
   identifying; blank those cells and note it in the README.
 - The CSVs contain no IP addresses; `user_agent` is kept for exclusions (mobile devices) and
-  is not identifying. Keep `prolific_pid` only if the course's IRB language allows it; it is
-  a persistent identifier on Prolific's side.
+  is not identifying. Prolific ids live only in the gitignored `identifiers.csv`.
 - Commit `data/raw/<id>/` and the analysis. `export.json` is redundant with the CSVs; commit it
   too unless it is very large.

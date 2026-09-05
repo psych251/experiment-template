@@ -20,8 +20,10 @@ test-results/
 playwright-report/
 playwright/.cache/
 
-# exported raw data: decide deliberately whether to commit (see docs/student-guide.md)
-# data/raw/
+# exported data: the CSVs are anonymous and meant to be committed (see docs/student-guide.md),
+# except the identifier mapping, which links anonymous ids to Prolific ids.
+identifiers.csv
+data/raw/**/manual/
 
 # OS / editor
 .DS_Store

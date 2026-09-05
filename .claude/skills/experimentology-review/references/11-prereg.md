@@ -20,9 +20,9 @@
 7. Is the sample size or stopping rule stated precisely, including what counts as a participant, and does the Prolific setup match it? (§11.3 How to preregister, template item 7)
 8. Are secondary and exploratory analyses listed under "Other," with exploratory-only variables flagged? (§11.3 How to preregister, template item 8)
 9. Does the writeup separate confirmatory (preregistered) from exploratory (unplanned) analyses, by section or explicit labels? (§11.3 How to preregister)
-10. Are all departures from the plan disclosed with reasons (e.g., a deviations table), ideally with the planned analysis also reported as a robustness check? (§11.3 How to preregister)
-11. Are hypotheses presented as a priori only if they appear in the preregistration, with post hoc ones labeled as such? (§11.1.2 Hypothesizing after results are known)
-12. Does the script avoid the "hot or cold" pattern: no loops over alternative DVs, subgroups, covariates, or exclusion thresholds with only the significant one reported? Unregistered subgroup analyses must be labeled exploratory. (§11.1.1 Data-dependent analysis)
+10. Are all departures from the plan disclosed with reasons (e.g., a deviations table), ideally with the planned analysis also reported as a robustness check? (§11.3 How to preregister) **[needs writeup]**
+11. Are hypotheses presented as a priori only if they appear in the preregistration, with post hoc ones labeled as such? (§11.1.2 Hypothesizing after results are known) **[needs writeup]**
+12. Does the script avoid the "hot or cold" pattern: no loops over alternative DVs, subgroups, covariates, or exclusion thresholds with only the significant one reported? Unregistered subgroup analyses must be labeled exploratory. (§11.1.1 Data-dependent analysis) **[needs writeup]**
 13. Where several analytic choices are equally justifiable (e.g., missing data), is a robustness check or multiverse prespecified rather than chosen after seeing results? (§11.2 depth box: Preregistration and friends)
 
 ## Common mistakes the book warns about

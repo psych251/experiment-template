@@ -12,10 +12,13 @@
  * The key bypasses security rules and can read/delete everything. Never commit it.
  *
  * Output (in --out, default data/raw/<experiment>/):
- *   participants.csv   one row per participant (start/end, completed, condition, Prolific ids, ...)
+ *   participants.csv   one row per participant (start/end, completed, condition, browser, ...)
  *   trials.csv         one row per jsPsych trial, long format; nested values are JSON strings
  *   errors.csv         client-side error reports
- *   export.json        everything, verbatim, for safekeeping
+ *   export.json        the above, verbatim, for safekeeping
+ *   identifiers.csv    participant_id -> Prolific ids and raw URL parameters. GITIGNORED.
+ *                      Prolific ids are persistent identifiers; keep this file private and
+ *                      use it only to approve/pay participants or reconcile duplicates.
  */
 const fs = require("fs");
 const path = require("path");
@@ -83,6 +86,7 @@ function writeCsv(file, rows, firstColumns) {
   fs.mkdirSync(outDir, { recursive: true });
 
   const participants = [];
+  const identifiers = [];
   const trials = [];
   const dump = { experiment_id: experimentId, exported_at: new Date().toISOString(), participants: [] };
 
@@ -103,25 +107,34 @@ function writeCsv(file, rows, firstColumns) {
     }
     pTrials.sort((a, b) => (a.trial_index ?? 0) - (b.trial_index ?? 0));
 
-    const { full_data, ...rest } = p;
-    participants.push({ participant_id: uid, ...rest, n_trials_exported: pTrials.length, trials_source: source,
-      url_params: rest.url_params, screen: rest.screen, viewport: rest.viewport });
-    for (const t of pTrials) trials.push({ participant_id: uid, ...t });
-    dump.participants.push({ participant_id: uid, participant: p, trials: pTrials, n_chunks: chunks.length });
+    // Identifiers go to a separate, gitignored file; everything committed stays anonymous.
+    const { full_data, prolific_pid, prolific_study_id, prolific_session_id, url_params, ...rest } = p;
+    identifiers.push({ participant_id: uid, prolific_pid, prolific_study_id, prolific_session_id,
+      url_params, started_at: rest.started_at, completed: rest.completed });
+    const pubTrials = pTrials.map(({ prolific_pid, ...t }) => t);
+    participants.push({ participant_id: uid, ...rest, n_trials_exported: pubTrials.length, trials_source: source });
+    for (const t of pubTrials) trials.push({ participant_id: uid, ...t });
+    dump.participants.push({ participant_id: uid, participant: rest, trials: pubTrials, n_chunks: chunks.length });
   }
 
   const errorsSnap = await expRef.collection("errors").orderBy("at").get().catch(() => expRef.collection("errors").get());
-  const errors = errorsSnap.docs.map((d) => ({ error_id: d.id, ...plain(d.data()) }));
+  const errors = errorsSnap.docs.map((d) => {
+    const e = plain(d.data());
+    if (typeof e.url === "string") e.url = e.url.split("?")[0]; // drop query string (may hold Prolific ids)
+    return { error_id: d.id, ...e };
+  });
   dump.errors = errors;
 
   console.log(`Exported experiments/${experimentId}:`);
   writeCsv(path.join(outDir, "participants.csv"), participants,
-    ["participant_id", "completed", "condition", "started_at", "ended_at", "n_trials", "prolific_pid", "prolific_study_id", "prolific_session_id"]);
+    ["participant_id", "completed", "condition", "started_at", "ended_at", "n_trials"]);
   writeCsv(path.join(outDir, "trials.csv"), trials,
     ["participant_id", "trial_index", "task", "condition", "trial_type", "rt", "response", "time_elapsed"]);
   writeCsv(path.join(outDir, "errors.csv"), errors, ["error_id", "uid", "at", "message", "trial_index"]);
   fs.writeFileSync(path.join(outDir, "export.json"), JSON.stringify(dump, null, 2));
   console.log(`  ${path.relative(process.cwd(), path.join(outDir, "export.json"))}`);
+  writeCsv(path.join(outDir, "identifiers.csv"), identifiers, ["participant_id", "prolific_pid", "prolific_study_id", "prolific_session_id"]);
+  console.log("  identifiers.csv is gitignored: it links participant ids to Prolific ids. Keep it private.");
   const done = participants.filter((p) => p.completed).length;
   console.log(`${participants.length} participants (${done} completed), ${trials.length} trials, ${errors.length} error reports.`);
   process.exit(0);

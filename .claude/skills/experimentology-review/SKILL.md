@@ -25,8 +25,17 @@ the relevant chapters are in `references/`; read the ones you need before writin
 ## Procedure
 
 1. **Inventory the project.** Read `README`, `experiment.js` (or the experiment source),
-   stimuli folder listing, the analysis (`analysis/*.Rmd` or similar), and any writeup or
-   preregistration (`writeup/`, `original_paper/`, `prereg`). Note what is missing.
+   the stimuli folder listing, the data pipeline (`src/save.js`, `scripts/export.js`,
+   `.gitignore`, anything under `data/`), the analysis (`analysis/*.Rmd` or similar), and any
+   writeup or preregistration (`writeup/`, `original_paper/`, `prereg`). Note what is missing.
+   Then decide the **phase** from what exists and from what the student says:
+   - *Pre-Pilot A*: no writeup or prereg yet. Review logging, analysis-code readiness,
+     consent, and data handling. Skip checklist items marked "needs writeup" and list the
+     prereg/power items once under "Should fix" as work to do before Pilot B, not as failures.
+   - *Pre-Pilot B / pre-final*: prereg draft exists. Everything applies; a missing power
+     justification, stopping rule, or exclusion rule is "Must fix".
+   - *Post-collection*: also check that the writeup reports deviations and separates
+     confirmatory from exploratory analyses.
 2. **Write a study summary** (≤10 lines) before judging anything: original finding being
    replicated; hypothesis; IV(s) and their levels and whether within/between; DV(s) and the
    exact trial fields that record them; planned N and how it was chosen; the key
@@ -44,6 +53,12 @@ the relevant chapters are in `references/`; read the ones you need before writin
    deviation from the original study and gives a reason, do not flag it as an error; you
    may comment on whether the reason is sound and whether the deviation is reported where
    the book says it should be.
+6. **Facts about the original study.** If `original_paper/` (or the paper's text) is in the
+   repo, cite it. If it is not, you may use what you know about the original, but mark each
+   such fact "(from memory, verify against the paper)" and add "put the original paper in
+   `original_paper/`" as a Should-fix item.
+7. **Consent text.** `references/consent-text.md` is the canonical course consent. Compare
+   it with the study's first screen; only the contact address may differ.
 
 ## Output format
 
@@ -67,6 +82,10 @@ the relevant chapters are in `references/`; read the ones you need before writin
 ## Top three
 The three changes with the best ratio of scientific value to effort, in one line each.
 ```
+
+Reference checklists tag some items **[needs writeup]**: skip those when no writeup or
+preregistration exists rather than reporting them as "not determinable". Chapters 04 and 12
+overlap on consent and debriefing; report each such issue once, citing both.
 
 Rules for findings: one issue per bullet; concrete and local (a file, a trial, a section
 of the writeup); cite the chapter section every time; no generic advice that does not

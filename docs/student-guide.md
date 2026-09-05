@@ -113,13 +113,15 @@ pilot checklists as usual.
    npm run export -- --experiment smith2016-final --key ~/keys/smith2016-service-account.json
    ```
    This writes `data/raw/smith2016-final/participants.csv`, `trials.csv`, `errors.csv`
-   and `export.json`.
+   and `export.json` (all anonymous: random ids, no IP addresses, no Prolific ids), plus
+   `identifiers.csv`, which maps ids to Prolific ids. That last file is gitignored; use it to
+   approve and pay participants and never commit or share it.
 3. Open `analysis/analysis.Rmd` in RStudio, set `experiment_id`, knit. The stub shows how to
    go from the long trial table to the framing analysis; replace it with your preregistered
    analysis.
-4. **Commit your raw data** (the CSVs are anonymous: anonymous uids, no IP addresses) so the
-   repository is a complete record. Do not commit anything a participant typed that could
-   identify them; check the free-text columns first.
+4. **Commit your raw data** (the CSVs are anonymous) so the repository is a complete record.
+   Do not commit anything a participant typed that could identify them; check the free-text
+   columns first. Leave `identifiers.csv` where it is (gitignored).
 
 `errors.csv` lists JavaScript errors that happened in participants' browsers, with the
 trial index. Empty is good. If it is not empty, the stack trace tells you where to look.

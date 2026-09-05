@@ -273,7 +273,7 @@
         stack: (error && error.stack) || null,
         context: sanitize(context || {}),
         trial_index: this.currentTrialIndex,
-        url: window.location.href,
+        url: window.location.href.split("?")[0], // no query string: it can carry Prolific ids
         user_agent: navigator.userAgent,
         client_time: new Date().toISOString(),
       };

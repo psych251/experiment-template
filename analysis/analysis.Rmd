@@ -53,10 +53,14 @@ keep <- complete |>
   left_join(ld_accuracy, by = "participant_id") |>
   filter(ld_acc >= 0.75)
 
-tibble(
-  step = c("started", "completed", "passed accuracy criterion"),
-  n = c(n_started, n_complete, nrow(keep))
-)
+# Report the funnel by condition: differential attrition or exclusion is a threat to validity.
+bind_rows(
+  participants |> mutate(step = "started"),
+  complete |> mutate(step = "completed"),
+  keep |> mutate(step = "passed accuracy criterion")
+) |>
+  count(step, condition) |>
+  pivot_wider(names_from = condition, values_from = n, values_fill = 0)
 ```
 
 ## Demographics
@@ -92,6 +96,15 @@ framing |> count(condition, choice) |>
 tab <- table(framing$condition, framing$choice)
 tab
 if (all(dim(tab) == c(2, 2))) chisq.test(tab)
+
+# Effect size with a confidence interval: the difference in the proportion choosing the risky
+# program (loss minus gain). Compare this interval to the original effect, not just the p value.
+risky <- framing |> group_by(condition) |> summarise(risky = sum(choice == "risky"), n = n(), .groups = "drop")
+if (nrow(risky) == 2 && all(risky$n > 0)) {
+  pt <- prop.test(x = risky$risky[risky$condition == c("loss", "gain")],
+                  n = risky$n[risky$condition == c("loss", "gain")], correct = FALSE)
+  tibble(estimate_loss_minus_gain = diff(rev(pt$estimate)), ci_low = pt$conf.int[1], ci_high = pt$conf.int[2])
+}
 
 ggplot(framing |> count(condition, choice) |> group_by(condition) |> mutate(prop = n / sum(n)),
        aes(x = condition, y = prop, fill = choice)) +

@@ -165,12 +165,13 @@ const CHUNK_SIZE = Number(URL_PARAMS.get("chunk_size")) || EXPERIMENT.chunk_size
       pages: [
         {
           elements: [
-            { type: "text", name: "age", title: "How old are you?", inputType: "number", min: 18, max: 120, isRequired: true },
+            // The consent text promises participants may decline any question, so nothing here is required.
+            { type: "text", name: "age", title: "How old are you?", inputType: "number", min: 18, max: 120 },
             {
-              type: "radiogroup", name: "gender", title: "What is your gender?", isRequired: true,
+              type: "radiogroup", name: "gender", title: "What is your gender?",
               choices: ["Woman", "Man", "Non-binary"], showOtherItem: true, showNoneItem: true, noneText: "Prefer not to say",
             },
-            { type: "boolean", name: "native_english", title: "Is English your first language?", labelTrue: "Yes", labelFalse: "No", isRequired: true },
+            { type: "boolean", name: "native_english", title: "Is English your first language?", labelTrue: "Yes", labelFalse: "No" },
           ],
         },
       ],
@@ -269,7 +270,7 @@ const CHUNK_SIZE = Number(URL_PARAMS.get("chunk_size")) || EXPERIMENT.chunk_size
     type: jsPsychSurveyLikert,
     questions: [
       {
-        prompt: "How clear were the instructions?", name: "instructions_clear", required: true,
+        prompt: "How clear were the instructions?", name: "instructions_clear", required: false,
         labels: ["Very unclear", "Unclear", "Neutral", "Clear", "Very clear"],
       },
     ],
@@ -290,7 +291,9 @@ const CHUNK_SIZE = Number(URL_PARAMS.get("chunk_size")) || EXPERIMENT.chunk_size
       <h2>Debrief</h2>
       <p>Thank you. In this study we tested whether describing the same outcomes as lives saved or
       as lives lost changes which program people choose. Different participants saw different
-      wordings. Press the button to save your responses and finish.</p>`,
+      wordings. If you have questions about this research, contact
+      <a href="mailto:${EXPERIMENT.contact_email}">${EXPERIMENT.contact_email}</a>.
+      Press the button to save your responses and finish.</p>`,
     choices: ["Finish"],
     data: { task: "debrief" },
   };

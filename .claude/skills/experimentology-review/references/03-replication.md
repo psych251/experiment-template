@@ -10,16 +10,16 @@
 ## Review checklist
 1. Does the repository contain the raw data plus a script that regenerates every reported number and figure, so the pipeline's provenance is traceable end to end? (§3.1 Reproducibility)
 2. Is the analysis fully scripted rather than described in prose or done by hand? (§3.1 Reproducibility; §3.4.3 Open science)
-3. Are reported statistics internally consistent (test statistic, degrees of freedom, p-value agree), and do writeup numbers match script output? (§3.1 Reproducibility)
-4. Does the writeup state the replication goal (verification, precision, replicate-and-extend) and whether it is direct or conceptual, without calling a different operationalization a "replication"? (§3.2 Replication; §3.2.1 Conceptual frameworks for replication)
-5. Does the project reuse the original materials where available and document every deviation in stimuli, instructions, procedure, and sample (online vs. lab, language, population) as a possible invariance violation? (§3.2.1; §3.4.3 Open science)
+3. Are reported statistics internally consistent (test statistic, degrees of freedom, p-value agree), and do writeup numbers match script output? (§3.1 Reproducibility) **[needs writeup]**
+4. Does the writeup state the replication goal (verification, precision, replicate-and-extend) and whether it is direct or conceptual, without calling a different operationalization a "replication"? (§3.2 Replication; §3.2.1 Conceptual frameworks for replication) **[needs writeup]**
+5. Does the project reuse the original materials where available and document every deviation in stimuli, instructions, procedure, and sample (online vs. lab, language, population) as a possible invariance violation? (§3.2.1; §3.4.3 Open science) **[needs writeup]**
 6. Are exclusion criteria and preprocessing specified in advance and implemented in the script exactly as preregistered? (§3.4.3 Open science)
 7. Does the preregistration fix dependent measures, conditions, covariates, and stopping rule so that dropping measures or conditions, optional stopping, and conditional covariates cannot happen silently? ("Analytic flexibility" accident report, §3.3)
 8. Is the sample size justified relative to the original effect, so the study is not a "small telescope" that could not see the effect either way? ("Small Telescopes" accident report, §3.2.1)
 9. Does the success criterion compare effect sizes (with intervals) rather than only whether p < 0.05 in the same direction? ("Small Telescopes" accident report, §3.2.1)
-10. If the replication fails, does the writeup treat context sensitivity, hidden moderators, or expertise as hypotheses needing evidence rather than as default explanations? ("Context, moderators, and expertise" depth box, §3.3)
-11. Does the discussion weigh the total evidence across original and replication (time-reversal heuristic) rather than giving the original precedence? ("Small Telescopes" accident report, §3.2.1)
-12. Is critique aimed at the design and analysis, not the original authors, with no language assuming negative intent? ("Consequences for the study, consequences for the person" accident report, §3.2.2)
+10. If the replication fails, does the writeup treat context sensitivity, hidden moderators, or expertise as hypotheses needing evidence rather than as default explanations? ("Context, moderators, and expertise" depth box, §3.3) **[needs writeup]**
+11. Does the discussion weigh the total evidence across original and replication (time-reversal heuristic) rather than giving the original precedence? ("Small Telescopes" accident report, §3.2.1) **[needs writeup]**
+12. Is critique aimed at the design and analysis, not the original authors, with no language assuming negative intent? ("Consequences for the study, consequences for the person" accident report, §3.2.2) **[needs writeup]**
 13. Are materials, data, and code shared so others can reproduce and replicate this project? (§3.4.3 Open science)
 
 ## Common mistakes the book warns about
