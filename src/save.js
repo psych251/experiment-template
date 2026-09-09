@@ -26,6 +26,7 @@
   const MAX_ERRORS_PER_SESSION = 20;
   const AUTH_TIMEOUT_MS = 12000;
   const MAX_FULL_DATA_BYTES = 800000; // stay under Firestore's 1 MiB document limit
+  const FINISH_TIMEOUT_MS = 20000; // if writes are still pending after this, offer the download instead of hanging
 
   function pad(n, width) {
     return String(n).padStart(width, "0");
@@ -256,9 +257,20 @@
           else update.full_data_omitted = "too large (" + full.length + " bytes)";
         }
         this._track(() => this.fb.setDoc(this._participantRef(), update, { merge: true }), "finish participant");
-        await this._settle();
+        // Firestore queues writes forever while offline, so do not wait forever: after the
+        // timeout, fall through to the download fallback. Queued writes still complete if the
+        // connection returns while the page stays open.
+        let timedOut = false;
+        await Promise.race([
+          this._settle(),
+          new Promise((r) => setTimeout(() => { timedOut = true; r(); }, FINISH_TIMEOUT_MS)),
+        ]);
+        if (timedOut) {
+          this.stats.writes_timed_out = this.pending.length;
+          console.warn("[DataSaver] " + this.pending.length + " write(s) still pending after " + FINISH_TIMEOUT_MS + "ms");
+        }
       }
-      const failed = this.stats.writes_failed > 0;
+      const failed = this.stats.writes_failed > 0 || (this.stats.writes_timed_out || 0) > 0;
       const ok = this.mode !== "offline" && !failed;
       if (!ok) this._offerDownload(jsPsych, full);
       return { ok: ok, mode: this.mode, failed: failed, uid: this.uid, stats: Object.assign({}, this.stats) };
@@ -343,7 +355,9 @@
       const box = document.createElement("div");
       box.id = "data-saver-fallback";
       box.style.cssText = "margin:24px auto;max-width:640px;padding:16px;border:2px solid #7a1f1f;border-radius:8px;font:15px/1.5 system-ui,sans-serif;text-align:left;";
-      const why = this.mode === "offline" ? this.reason : "some writes to Firestore failed (" + this.stats.writes_failed + ")";
+      const why = this.mode === "offline" ? this.reason
+        : this.stats.writes_timed_out ? "the connection to the server was lost before saving finished"
+        : "some writes to Firestore failed (" + this.stats.writes_failed + ")";
       box.innerHTML =
         "<p><strong>Your data was not saved to the server</strong> (" + why + ").</p>" +
         "<p>Please download the file below and send it to the researcher.</p>";

@@ -154,6 +154,34 @@ test.describe("experiment", () => {
     await expect(page.getByText("Your responses were saved")).toHaveCount(0);
   });
 
+  test("losing the connection at the end offers the download fallback instead of hanging", async ({ page, context }) => {
+    test.skip(!EMULATOR, "needs the Firestore emulator");
+    test.setTimeout(120000);
+    // Run the real flow up to the last click, then cut the connection before "Finish".
+    await page.goto("/?emulator=1");
+    await page.waitForFunction(() => window.__saver && window.__saver.uid);
+    await page.getByRole("button", { name: "I agree to participate" }).click();
+    await page.locator("#jspsych-instructions-next").click();
+    await page.locator("#jspsych-instructions-next").click();
+    await page.locator('input[value="Continue"]').click();
+    await page.getByRole("button", { name: "Program B" }).click();
+    await page.locator("#jspsych-instructions-next").click();
+    for (let i = 0; i < 8; i++) {
+      const stim = page.locator(".stimulus");
+      await stim.waitFor({ state: "visible" });
+      await page.keyboard.press("f");
+      await stim.waitFor({ state: "detached" });
+    }
+    await page.locator("#jspsych-survey-likert-next").click();
+    await page.locator("#jspsych-survey-text-next").click();
+    await context.setOffline(true);
+    await page.getByRole("button", { name: "Finish" }).click();
+    await expect(page.locator("#data-saver-fallback")).toBeVisible({ timeout: 40000 });
+    await expect(page.getByText("connection to the server was lost")).toBeVisible();
+    await expect(page.getByText("Your responses were saved")).toHaveCount(0);
+    await context.setOffline(false);
+  });
+
   test("security rules reject reads and writes to other participants", async ({ page }) => {
     test.skip(!EMULATOR, "needs the Firestore emulator");
     await page.goto("/?emulator=1");
