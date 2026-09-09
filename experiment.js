@@ -41,7 +41,7 @@ const EXPERIMENT = {
   prolific_completion_code: "",
 
   // Contact shown in consent and debrief.
-  contact_email: "psych251-staff@stanford.edu",
+  contact_email: "stanfordpsych251@gmail.com",
 };
 
 // `?emulator=1` in the URL sends data to the local emulator instead of the real project.
