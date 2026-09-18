@@ -34,10 +34,12 @@ test-results/
 playwright-report/
 playwright/.cache/
 
-# exported data: the CSVs are anonymous and meant to be committed (see docs/student-guide.md),
-# except the identifier mapping, which links anonymous ids to Prolific ids.
+# Exported data: the CSVs are anonymous and meant to be committed (see docs/student-guide.md).
+# The one exception is the identifier mapping, which links anonymous ids to Prolific ids.
+# Data a participant downloaded and sent you (data/raw/<id>/manual/) is NOT ignored: it is
+# part of the record and belongs in the repository, like the CSVs. Check it for anything
+# identifying before committing, exactly as you would the free-text columns.
 identifiers.csv
-data/raw/**/manual/
 
 # OS / editor
 .DS_Store

@@ -375,7 +375,7 @@ trials, set `requires_keyboard: false` in `experiment.js`.
 | Google will not let you create a project | Workspace policy on a university account | Use a personal Google account; section 2 |
 | Export says it found nothing | `--experiment` does not match `EXPERIMENT.id` | Section 6, step 3 |
 | Writes start failing late in data collection | Free daily write limit | Raise `chunk_size`; writes resume the next day |
-| A participant emails you a `.json` file | Their connection dropped and the page offered a download | Put it in `data/raw/<id>/manual/` and read it alongside the CSVs |
+| A participant emails you a `.json` file | Their connection dropped and the page offered a download | Put it in `data/raw/<id>/manual/`, read it alongside the CSVs, and commit it: it is part of your data. Do not commit their email. |
 
 A note on the config file in a public repo: GitHub will not warn you about it, and there is
 nothing to warn about. Secret scanning does not flag Firebase web configs, and on many
