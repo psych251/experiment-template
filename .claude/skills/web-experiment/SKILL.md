@@ -61,6 +61,14 @@ in `src/save.js` and must not be bypassed.
   `data.timed_out`) so they are saved with the trial, not reconstructed later.
 - Participant-level facts go on every row via `jsPsych.data.addProperties({...})` **and** on
   the participant document via `saver.updateParticipant({...})` (see `condition` in the demo).
+- The participant id is `saver.docId` (`<uid>-<runId>`, one per page load), never `saver.uid`.
+  If you set `participant_id` in the data, use `saver.docId`, or `trials.csv` will not join to
+  `participants.csv` and the analysis will silently drop everyone.
+- If your study has keyboard trials, leave `EXPERIMENT.requires_keyboard` true: phones have no
+  keyboard and would otherwise record complete-looking sessions full of timeouts. If you make
+  the study button-only, set it to false and say so.
+- Never navigate away from the page during an emulator run: the Prolific redirect is
+  suppressed under `?emulator=1` so that a completion code cannot break the test suite.
 - Between-subjects assignment: `jsPsych.randomization.sampleWithoutReplacement([...], 1)[0]`.
   Exact counterbalancing needs a server; at course sample sizes random assignment is fine.
   Say so in the writeup. If balance matters, derive assignment from `saver.uid` deterministically

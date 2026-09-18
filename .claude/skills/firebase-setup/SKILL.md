@@ -9,19 +9,32 @@ The template needs one free Firebase (Spark) project per student, on a **persona
 account. The browser talks to Firestore directly; there is no server and no build. Nothing
 here requires the Firebase CLI to log in, so the student never links accounts.
 
-## What the student must do in the browser (give them this list verbatim)
+## What the student must do in the browser
 
-1. https://console.firebase.google.com → **Create a project** (Analytics off, Spark plan).
-2. **Firestore Database → Create database** → pick a region → **production mode**
-   (not test mode: test-mode rules expire after 30 days).
-3. **Rules** tab → replace everything with the contents of `firebase/firestore.rules` → **Publish**.
-4. **Authentication → Get started → Sign-in method → Anonymous → Enable → Save**.
-5. **Project settings → General → Your apps → Web `</>`** → register (no Hosting) → copy
-   the `firebaseConfig` object.
-6. Paste it into `firebase-config.js` over the placeholder, keeping `window.FIREBASE_CONFIG =`.
+**Do not paraphrase the console steps from memory: the Firebase console changes often and a
+wrong click here is where students lose the most time.** Point them at section 2 of
+`docs/student-guide.md`, which is written screen by screen and was last confirmed against a
+brand-new account in September 2026. Summarise it as the five things they are achieving:
 
-Show them where to paste and ask them to tell you when steps 1–6 are done. Everything below
-is yours.
+1. Create a project on a **personal** Google account (Spark plan, Analytics off).
+2. Create a Firestore database in **production mode** (never test mode: those rules expire
+   after 30 days, mid-collection).
+3. Publish the contents of `firebase/firestore.rules` on the Rules tab.
+4. Enable **Anonymous** sign-in (the provider toggle, not the auto-clean-up checkbox).
+5. Register a web app, choose the **Config** view, and replace the six `PASTE_ME` lines in
+   `firebase-config.js`.
+
+Two traps worth naming explicitly when you hand this over, because neither produces an error
+message:
+
+- The console shows `const firebaseConfig = {`; the file needs `window.FIREBASE_CONFIG = {`.
+  Only the six lines inside the braces get replaced. Pasting the whole block silently leaves
+  the page in offline mode.
+- A **Stanford** (Workspace) account cannot create projects at all: Continue is greyed out
+  and the Cloud console asks for a parent organization that does not exist. That is policy,
+  not a bug. They need a personal account.
+
+Ask them to tell you when all five are done. Everything below is yours.
 
 ## What you do
 
@@ -33,9 +46,11 @@ is yours.
    Never edit the rules to `allow read, write: if true`, even temporarily.
 3. **Verify the live connection.** `npm start`, then load http://localhost:8000 in a headless
    browser (Playwright is installed) and read `window.__saver.mode` and `window.__saver.reason`
-   after `window.__saver.uid` is set. Expect `mode === "firebase"`. Then run through the
+   after `window.__saver.docId` is set. Expect `mode === "firebase"`. Then run through the
    experiment (`tests/experiment.spec.js` shows how) and check `window.__saver.stats.writes_failed === 0`.
    Ask the student to confirm a document appears under **Firestore → Data → experiments**.
+   Run it **twice in the same browser session**: each run must produce its own participant
+   document (ids look like `<uid>-<runId>`) and neither may report failed writes.
 4. **Quota check.** Writes per participant ≈ trials / `chunk_size` + 3. Multiply by the
    planned N per day. If it approaches 20,000, raise `chunk_size` in `experiment.js`.
 5. Commit `firebase-config.js`. It is a public identifier, not a secret; explain this if

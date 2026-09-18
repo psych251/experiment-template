@@ -8,14 +8,17 @@ description: Export data from Firestore to CSV, load and tidy it in R, triage cl
 ## Data model (what the export sees)
 
 ```
-experiments/{id}/participants/{uid}             start/end, completed, condition, Prolific ids,
+experiments/{id}/participants/{pid}             start/end, completed, condition, Prolific ids,
                                                 browser info, full_data (JSON string of all trials)
-experiments/{id}/participants/{uid}/trials/…    chunks; each has trials: [ ...jsPsych rows ]
+experiments/{id}/participants/{pid}/trials/…    chunks; each has trials: [ ...jsPsych rows ]
 experiments/{id}/errors/…                       uncaught JS errors with uid + trial_index
 ```
 
-`uid` is the anonymous auth id, unique per browser session. A participant who reloads the
-page gets a new uid: two partial records. Use `identifiers.csv` (Prolific id) to reconcile.
+`{pid}` is `<anonymous auth uid>-<run id>`: the browser, then this page load. One page load
+writes one participant document, so a reload or a second run in the same browser produces a
+second, separate record rather than overwriting the first. The `uid` field is the browser
+part, so rows sharing a `uid` came from the same browser (a reload, or a student testing).
+Use `identifiers.csv` (Prolific id) to reconcile a participant across records.
 
 ## Export
 
@@ -34,7 +37,10 @@ page gets a new uid: two partial records. Use `identifiers.csv` (Prolific id) to
 3. Sanity-check the export: number of participants vs. Prolific's count; `completed` rate;
    `n_trials` per participant equal to the timeline length; `trials_source` should be
    `chunks` (if it is `full_data`, incremental writes failed for that participant, worth a look
-   in `errors.csv`).
+   in `errors.csv`). Check `participants.csv` and `trials.csv` join on `participant_id`: if
+   they do not, every participant will be silently excluded from the analysis.
+   Also check `device_supported`: rows where it is false are phone visits turned away before
+   consent, and rows where every speeded trial timed out should be excluded.
 4. Against the emulator (for testing analysis code before real data exists):
    `npm run emulators` in one terminal, `npx playwright test` a few times in another, then
    `npm run export -- --experiment framing-demo --emulator`.

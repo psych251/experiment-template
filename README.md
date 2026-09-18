@@ -17,7 +17,8 @@ Start with **[docs/student-guide.md](docs/student-guide.md)**. The short version
 # 1. Use this template -> create your project repo -> clone it
 npm install
 npm start          # open http://localhost:8000 : the demo runs in "offline" mode
-npm test           # robot participant + emulator; should pass out of the box
+npm test           # robot participant + emulator; 10 tests, should pass out of the box
+                   # (needs Java 17+; downloads a test browser the first time)
 
 # 2. Create a Firebase project (personal Google account), enable Firestore + Anonymous auth,
 #    paste the config into firebase-config.js, paste firebase/firestore.rules into the console.
@@ -52,7 +53,8 @@ experiments/{experiment_id}/participants/{uid}/trials/…   chunks of jsPsych tr
 experiments/{experiment_id}/errors/…                      client-side error reports
 ```
 
-`uid` is the anonymous Firebase Auth id. The participant document stores start/end times,
+Each page load writes its own participant document, named `<anonymous auth id>-<run id>`, so
+a reload or a second run in the same browser can never overwrite an earlier one. The participant document stores start/end times,
 completion, condition, Prolific ids, browser info, and (by default) the full jsPsych dataset
 as a JSON string. Trials are also written incrementally in chunks (`chunk_size` in
 `experiment.js`), so a participant who closes the tab still leaves everything up to that point.
