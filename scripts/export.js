@@ -111,7 +111,10 @@ function writeCsv(file, rows, firstColumns) {
     const { full_data, prolific_pid, prolific_study_id, prolific_session_id, url_params, ...rest } = p;
     identifiers.push({ participant_id: uid, prolific_pid, prolific_study_id, prolific_session_id,
       url_params, started_at: rest.started_at, completed: rest.completed });
-    const pubTrials = pTrials.map(({ prolific_pid, ...t }) => t);
+    // participant_id comes from the document path, never from the trial row: if an
+    // experiment sets its own participant_id the two must not disagree, or trials.csv
+    // and participants.csv will not join.
+    const pubTrials = pTrials.map(({ prolific_pid, participant_id, ...t }) => t);
     participants.push({ participant_id: uid, ...rest, n_trials_exported: pubTrials.length, trials_source: source });
     for (const t of pubTrials) trials.push({ participant_id: uid, ...t });
     dump.participants.push({ participant_id: uid, participant: rest, trials: pubTrials, n_chunks: chunks.length });

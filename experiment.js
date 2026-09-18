@@ -136,7 +136,8 @@ if (USE_EMULATOR && URL_PARAMS.get("cc")) EXPERIMENT.prolific_completion_code = 
 
   // Record the participant id and URL parameters on every trial row.
   jsPsych.data.addProperties({
-    participant_id: saver.uid,
+    // Must be the run-scoped document id, so trial rows join to participants.csv on export.
+    participant_id: saver.docId,
     prolific_pid: saver.params.PROLIFIC_PID || null,
     experiment_id: EXPERIMENT.id,
   });

@@ -130,6 +130,10 @@ test.describe("experiment", () => {
     expect(ld.every((t) => t.correct === true)).toBe(true);
     const demo = trials.find((t) => t.task === "demographics");
     expect(demo.response.age).toBe(34);
+
+    // Every trial row must carry the same participant id as its participant document,
+    // otherwise trials.csv and participants.csv cannot be joined in the analysis.
+    expect([...new Set(trials.map((t) => t.participant_id))]).toEqual([uid]);
   });
 
   test("chunked writes (chunk_size > 1) save every trial", async ({ page }) => {
