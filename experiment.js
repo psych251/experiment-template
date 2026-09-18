@@ -42,7 +42,20 @@ const EXPERIMENT = {
 
   // Contact shown in consent and debrief.
   contact_email: "stanfordpsych251@gmail.com",
+
+  // Does this study need a physical keyboard? The demo does (the word task uses F and J).
+  // On a phone or tablet no keyboard appears, so a participant cannot answer those trials;
+  // they would time out silently and the session would still look complete. When true, such
+  // devices are turned away before consent. Set to false if your study is buttons/touch only.
+  requires_keyboard: true,
 };
+
+// True on anything with a mouse, trackpad, or stylus, including laptops with touchscreens.
+// False on phones and tablets without a pointing device, which are also the devices with no
+// physical keyboard. See docs/student-guide.md "Devices".
+function hasFinePointer() {
+  return !!(window.matchMedia && window.matchMedia("(any-pointer: fine)").matches);
+}
 
 // `?emulator=1` in the URL sends data to the local emulator instead of the real project.
 // Used by `npm test`; handy for development too (start it with `npm run emulators`).
@@ -50,11 +63,16 @@ const URL_PARAMS = new URLSearchParams(window.location.search);
 const USE_EMULATOR = URL_PARAMS.get("emulator") === "1";
 // `?chunk_size=N` overrides the setting above; used by the test suite to exercise chunked writes.
 const CHUNK_SIZE = Number(URL_PARAMS.get("chunk_size")) || EXPERIMENT.chunk_size;
+// Test-only: `?cc=CODE` sets a Prolific completion code during emulator runs, so the test
+// suite can check the screen a participant sees once you have set yours. Ignored in live runs.
+if (USE_EMULATOR && URL_PARAMS.get("cc")) EXPERIMENT.prolific_completion_code = URL_PARAMS.get("cc");
 
 // ---------------------------------------------------------------------------
 // Boot: connect the saver first so even a crash in the first trial gets logged.
 // ---------------------------------------------------------------------------
 (async function main() {
+  const deviceSupported = !EXPERIMENT.requires_keyboard || hasFinePointer();
+
   const saver = await DataSaver.init({
     experiment_id: EXPERIMENT.id,
     chunk_size: CHUNK_SIZE,
@@ -62,6 +80,23 @@ const CHUNK_SIZE = Number(URL_PARAMS.get("chunk_size")) || EXPERIMENT.chunk_size
     use_emulator: USE_EMULATOR,
   });
   window.__saver = saver; // for debugging and the automated test
+
+  // Record the device verdict on the participant document before anything else, so a
+  // participant turned away below is still visible in the data rather than simply absent.
+  saver.updateParticipant({ device_supported: deviceSupported, requires_keyboard: EXPERIMENT.requires_keyboard });
+
+  if (!deviceSupported) {
+    document.body.innerHTML =
+      '<div id="device-unsupported" class="jspsych-content" style="max-width:640px;margin:15vh auto;font:16px/1.6 system-ui,sans-serif;">' +
+      "<h2>Please use a computer</h2>" +
+      "<p>This study needs a computer with a physical keyboard, because part of it is answered " +
+      "by pressing keys. Phones and tablets cannot be used.</p>" +
+      "<p>Please reopen this link on a laptop or desktop computer. If you were sent here from " +
+      "Prolific, you can return the study and take it later on a computer; nothing has been recorded " +
+      "against you.</p>" +
+      "<p>Questions: <a href=\"mailto:" + EXPERIMENT.contact_email + "\">" + EXPERIMENT.contact_email + "</a></p></div>";
+    return;
+  }
 
   const jsPsych = initJsPsych({
     show_progress_bar: true,
@@ -82,12 +117,14 @@ const CHUNK_SIZE = Number(URL_PARAMS.get("chunk_size")) || EXPERIMENT.chunk_size
           "You may close this window" + (EXPERIMENT.prolific_completion_code ? " and return the study on Prolific" : "") + ".</p>";
         return;
       }
-      if (result.ok && EXPERIMENT.prolific_completion_code) {
+      if (result.ok && EXPERIMENT.prolific_completion_code && !USE_EMULATOR) {
         msg.innerHTML = "<p class='thanks'>Saved. Returning you to Prolific…</p>";
         window.location.href =
           "https://app.prolific.com/submissions/complete?cc=" + EXPERIMENT.prolific_completion_code;
         return;
       }
+      // In emulator/test runs we stay on the page instead of navigating to Prolific, so that
+      // setting a completion code can never turn `npm test` or CI red. Live runs redirect above.
       msg.innerHTML =
         "<h2 class='thanks'>All done</h2>" +
         (result.ok ? "<p class='thanks'>Your responses were saved. Thank you for participating!</p>" : "") +

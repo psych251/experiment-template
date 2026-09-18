@@ -53,6 +53,20 @@
     return value;
   }
 
+  // A short random id for THIS page load. Combined with the anonymous uid it names the
+  // participant document, so a reload or a second run in the same browser always writes a
+  // fresh document instead of overwriting the previous one.
+  function makeRunId() {
+    const c = window.crypto;
+    if (c && typeof c.randomUUID === "function") return c.randomUUID().split("-")[0];
+    if (c && c.getRandomValues) {
+      const a = new Uint8Array(4);
+      c.getRandomValues(a);
+      return Array.from(a, (b) => b.toString(16).padStart(2, "0")).join("");
+    }
+    return Math.random().toString(16).slice(2, 10);
+  }
+
   function urlParams() {
     const out = {};
     new URLSearchParams(window.location.search).forEach((v, k) => (out[k] = v));
@@ -102,7 +116,9 @@
       );
       this.mode = "offline";
       this.reason = "";
-      this.uid = null;
+      this.uid = null;      // anonymous auth id: the browser
+      this.runId = makeRunId(); // this page load
+      this.docId = null;    // "<uid>-<runId>": the participant document for this run
       this.db = null;
       this.buffer = [];
       this.chunkIndex = 0;
@@ -146,6 +162,7 @@
         }
         const cred = await withTimeout(fb.signInAnonymously(auth), AUTH_TIMEOUT_MS, "anonymous sign-in");
         this.uid = cred.user.uid;
+        this.docId = this.uid + "-" + this.runId;
         this.db = db;
         this.fb = fb;
         this.mode = useEmulator ? "emulator" : "firebase";
@@ -170,17 +187,20 @@
       this.mode = "offline";
       this.reason = reason;
       this.uid = "offline-" + Math.random().toString(36).slice(2, 10);
+      this.docId = this.uid + "-" + this.runId;
       console.warn("[DataSaver] OFFLINE MODE: " + reason);
       if (this.opts.show_banner) showBanner("Data is NOT being saved to Firebase: " + reason, "offline");
     }
 
     _participantRef() {
-      return this.fb.doc(this.db, "experiments", this.opts.experiment_id, "participants", this.uid);
+      return this.fb.doc(this.db, "experiments", this.opts.experiment_id, "participants", this.docId);
     }
 
     async _createParticipant() {
       const info = {
+        participant_id: this.docId,
         uid: this.uid,
+        run_id: this.runId,
         experiment_id: this.opts.experiment_id,
         started_at: this.fb.serverTimestamp(),
         client_started_at: new Date().toISOString(),
@@ -224,7 +244,7 @@
       const trials = this.buffer;
       this.buffer = [];
       const idx = this.chunkIndex++;
-      const ref = this.fb.doc(this.db, "experiments", this.opts.experiment_id, "participants", this.uid, "trials", "chunk-" + pad(idx, 5));
+      const ref = this.fb.doc(this.db, "experiments", this.opts.experiment_id, "participants", this.docId, "trials", "chunk-" + pad(idx, 5));
       const docData = {
         chunk_index: idx,
         n_trials: trials.length,
@@ -273,7 +293,8 @@
       const failed = this.stats.writes_failed > 0 || (this.stats.writes_timed_out || 0) > 0;
       const ok = this.mode !== "offline" && !failed;
       if (!ok) this._offerDownload(jsPsych, full);
-      return { ok: ok, mode: this.mode, failed: failed, uid: this.uid, stats: Object.assign({}, this.stats) };
+      return { ok: ok, mode: this.mode, failed: failed, uid: this.uid, participant_id: this.docId,
+               stats: Object.assign({}, this.stats) };
     }
 
     /** Report an error to the errors collection (also used for uncaught errors). */
@@ -351,7 +372,7 @@
 
     _offerDownload(jsPsych, fullJson) {
       const target = (jsPsych && jsPsych.getDisplayElement && jsPsych.getDisplayElement()) || document.body;
-      const uid = this.uid;
+      const uid = this.docId;
       const box = document.createElement("div");
       box.id = "data-saver-fallback";
       box.style.cssText = "margin:24px auto;max-width:640px;padding:16px;border:2px solid #7a1f1f;border-radius:8px;font:15px/1.5 system-ui,sans-serif;text-align:left;";

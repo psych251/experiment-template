@@ -18,8 +18,17 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // A participant document is named "<uid>-<runId>": the browser's anonymous auth id,
+    // then a random id generated fresh on every page load. One page load writes one
+    // document, so a reload or a second run in the same browser can never overwrite an
+    // earlier run's data, and trial chunks can never collide. This checks that the part
+    // before the first "-" is the caller's own uid. Anonymous uids contain only letters
+    // and digits, so the first "-" is always the separator we added.
     function isOwner(participantId) {
-      return signedIn() && request.auth.uid == participantId;
+      return signedIn()
+        && participantId.size() > request.auth.uid.size() + 1
+        && participantId[0:request.auth.uid.size()] == request.auth.uid
+        && participantId[request.auth.uid.size():request.auth.uid.size() + 1] == "-";
     }
 
     // Keep any single write well under Firestore's 1 MiB document limit and

@@ -10,7 +10,7 @@
 // If you change the timeline in experiment.js, update `runThroughExperiment` below so the
 // robot still knows which buttons to press. That is a feature: the test documents the flow.
 
-const { test, expect } = require("@playwright/test");
+const { test, expect, devices } = require("@playwright/test");
 
 const EMULATOR = process.env.EMULATOR === "1" || !!process.env.FIRESTORE_EMULATOR_HOST;
 const PROJECT = "demo-psych251";
@@ -91,7 +91,7 @@ test.describe("experiment", () => {
     // No uncaught errors from the experiment itself.
     expect(consoleErrors, "uncaught page errors").toEqual([]);
 
-    const uid = await page.evaluate(() => window.__saver.uid);
+    const uid = await page.evaluate(() => window.__saver.docId);
     const stats = await page.evaluate(() => window.__saver.stats);
 
     if (!EMULATOR) {
@@ -137,7 +137,7 @@ test.describe("experiment", () => {
     await page.goto("/?emulator=1&chunk_size=5");
     await page.waitForFunction(() => window.__saver && window.__saver.uid);
     await runThroughExperiment(page);
-    const uid = await page.evaluate(() => window.__saver.uid);
+    const uid = await page.evaluate(() => window.__saver.docId);
     const p = decodeFields((await fsGet(`experiments/${EXPERIMENT_ID}/participants/${uid}`)).body.fields);
     const chunks = await fsGet(`experiments/${EXPERIMENT_ID}/participants/${uid}/trials?pageSize=500`);
     const docs = (chunks.body.documents || []).map((d) => decodeFields(d.fields));
@@ -182,6 +182,81 @@ test.describe("experiment", () => {
     await context.setOffline(false);
   });
 
+  test("a second run in the same browser is a new participant and saves cleanly", async ({ page }) => {
+    test.skip(!EMULATOR, "needs the Firestore emulator");
+    test.setTimeout(120000);
+
+    const ids = [];
+    for (let run = 0; run < 2; run++) {
+      // Same page/context both times: the anonymous auth session persists, exactly as it
+      // does for a student testing twice in one browser or a participant who reloads.
+      await page.goto("/?emulator=1&PROLIFIC_PID=rerun" + run);
+      await page.waitForFunction(() => window.__saver && window.__saver.docId);
+      await runThroughExperiment(page);
+      const info = await page.evaluate(() => ({
+        uid: window.__saver.uid, docId: window.__saver.docId, stats: window.__saver.stats,
+      }));
+      expect(info.stats.writes_failed, "run " + run + " had failed writes").toBe(0);
+      await expect(page.locator("#data-saver-fallback")).toHaveCount(0);
+      ids.push(info);
+    }
+
+    expect(ids[0].uid).toBe(ids[1].uid);          // same browser, same anonymous identity
+    expect(ids[0].docId).not.toBe(ids[1].docId);  // but a separate participant record
+
+    // Both runs survive intact, with their own Prolific id and their own trials.
+    for (let run = 0; run < 2; run++) {
+      const p = await fsGet(`experiments/${EXPERIMENT_ID}/participants/${ids[run].docId}`);
+      expect(p.status).toBe(200);
+      const pdoc = decodeFields(p.body.fields);
+      expect(pdoc.completed, "run " + run + " completed").toBe(true);
+      expect(pdoc.prolific_pid).toBe("rerun" + run);
+      const chunks = await fsGet(`experiments/${EXPERIMENT_ID}/participants/${ids[run].docId}/trials?pageSize=500`);
+      expect((chunks.body.documents || []).length).toBe(pdoc.n_trials);
+    }
+  });
+
+  test("setting a Prolific completion code does not break the test run", async ({ page }) => {
+    // Regression test for the failure students hit right before launch: with a completion
+    // code set, the live page redirects to Prolific, but a test run must stay put so that
+    // `npm test` and CI keep passing.
+    const navigations = [];
+    page.on("framenavigated", (f) => { if (f === page.mainFrame()) navigations.push(f.url()); });
+
+    await page.goto(EMULATOR ? "/?emulator=1&cc=QA123CODE" : "/?cc=QA123CODE");
+    await page.waitForFunction(() => window.__saver && window.__saver.docId);
+    await runThroughExperiment(page);
+
+    expect(navigations.some((u) => u.includes("prolific.com")), "must not navigate to Prolific").toBe(false);
+    if (EMULATOR) await expect(page.getByText("QA123CODE")).toBeVisible();
+  });
+
+  test("phones and tablets are turned away before consent", async ({ browser }) => {
+    const context = await browser.newContext({ ...devices["iPhone 13"] });
+    const page = await context.newPage();
+    await page.goto("http://localhost:8017/?emulator=1");
+    await expect(page.locator("#device-unsupported")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByRole("button", { name: "I agree to participate" })).toHaveCount(0);
+
+    if (EMULATOR) {
+      // The turned-away visit is still recorded, so phone traffic is visible in the data.
+      await page.waitForFunction(() => window.__saver && window.__saver.docId);
+      const docId = await page.evaluate(() => window.__saver.docId);
+      await page.evaluate(() => window.__saver._settle());
+      const p = await fsGet(`experiments/${EXPERIMENT_ID}/participants/${docId}`);
+      const pdoc = decodeFields(p.body.fields);
+      expect(pdoc.device_supported).toBe(false);
+      expect(pdoc.completed).toBe(false);
+    }
+    await context.close();
+  });
+
+  test("a desktop browser is not turned away", async ({ page }) => {
+    await page.goto(EMULATOR ? "/?emulator=1" : "/");
+    await expect(page.getByRole("button", { name: "I agree to participate" })).toBeVisible();
+    await expect(page.locator("#device-unsupported")).toHaveCount(0);
+  });
+
   test("security rules reject reads and writes to other participants", async ({ page }) => {
     test.skip(!EMULATOR, "needs the Firestore emulator");
     await page.goto("/?emulator=1");
@@ -195,7 +270,7 @@ test.describe("experiment", () => {
         try { await fn(); out[name] = "allowed"; } catch (e) { out[name] = e.code || e.message; }
       };
       await attempt("read own doc", () =>
-        fb.getDoc(fb.doc(s.db, "experiments", s.opts.experiment_id, "participants", s.uid)));
+        fb.getDoc(fb.doc(s.db, "experiments", s.opts.experiment_id, "participants", s.docId)));
       await attempt("write other participant", () =>
         fb.setDoc(fb.doc(s.db, "experiments", s.opts.experiment_id, "participants", "someone-else"), { hacked: true }));
       await attempt("write other participant trials", () =>
@@ -205,7 +280,11 @@ test.describe("experiment", () => {
       await attempt("error doc with wrong uid", () =>
         fb.addDoc(fb.collection(s.db, "experiments", s.opts.experiment_id, "errors"), { uid: "not-me", message: "x" }));
       await attempt("own chunk (should be allowed)", () =>
-        fb.setDoc(fb.doc(s.db, "experiments", s.opts.experiment_id, "participants", s.uid, "trials", "chunk-test"), { trials: [{ a: 1 }] }));
+        fb.setDoc(fb.doc(s.db, "experiments", s.opts.experiment_id, "participants", s.docId, "trials", "chunk-test"), { trials: [{ a: 1 }] }));
+      await attempt("participant doc without the run suffix", () =>
+        fb.setDoc(fb.doc(s.db, "experiments", s.opts.experiment_id, "participants", s.uid), { sneaky: true }));
+      await attempt("another browser's run id", () =>
+        fb.setDoc(fb.doc(s.db, "experiments", s.opts.experiment_id, "participants", "someone-else-abcd1234"), { sneaky: true }));
       return out;
     });
 
@@ -215,6 +294,8 @@ test.describe("experiment", () => {
     expect(results["write unrelated collection"]).toBe("permission-denied");
     expect(results["error doc with wrong uid"]).toBe("permission-denied");
     expect(results["own chunk (should be allowed)"]).toBe("allowed");
+    expect(results["participant doc without the run suffix"]).toBe("permission-denied");
+    expect(results["another browser's run id"]).toBe("permission-denied");
   });
 
   test("uncaught errors are logged to the errors collection", async ({ page }) => {
