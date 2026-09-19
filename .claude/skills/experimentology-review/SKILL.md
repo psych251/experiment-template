@@ -53,7 +53,13 @@ the relevant chapters are in `references/`; read the ones you need before writin
    deviation from the original study and gives a reason, do not flag it as an error; you
    may comment on whether the reason is sound and whether the deviation is reported where
    the book says it should be.
-6. **Facts about the original study.** If `original_paper/` (or the paper's text) is in the
+6. **Citations you did not read are claims, not facts.** Attributing a finding, an
+   experiment number, or a statistic to a paper that is not in the repository is the one
+   error this review reliably makes, and being wrong in a confident review is worse than
+   saying less. Cite only what is in `original_paper/` or the student's own materials.
+   Anything else gets "(from memory, verify)" attached to that sentence, and a claim you
+   cannot attach to a specific paper and experiment should be cut rather than hedged.
+7. **Facts about the original study.** If `original_paper/` (or the paper's text) is in the
    repo, cite it. If it is not, you may use what you know about the original, but mark each
    such fact "(from memory, verify against the paper)" and add "put the original paper in
    `original_paper/`" as a Should-fix item.
@@ -86,6 +92,10 @@ The three changes with the best ratio of scientific value to effort, in one line
 Reference checklists tag some items **[needs writeup]**: skip those when no writeup or
 preregistration exists rather than reporting them as "not determinable". Chapters 04 and 12
 overlap on consent and debriefing; report each such issue once, citing both.
+
+Pitch it for a first-year. Six precise findings they act on beat twenty they skim: keep the
+reasoning to a sentence, cut anything that is a general methods lecture rather than a change
+to this project, and put the effort into the "Top three" being genuinely the top three.
 
 Rules for findings: one issue per bullet; concrete and local (a file, a trial, a section
 of the writeup); cite the chapter section every time; no generic advice that does not

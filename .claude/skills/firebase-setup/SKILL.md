@@ -44,7 +44,11 @@ Ask them to tell you when all five are done. Everything below is yours.
 2. **Validate the rules locally**: `npm test` starts the emulator with these rules and runs
    the robot; the "security rules" test proves the rules deny reads and cross-participant writes.
    Never edit the rules to `allow read, write: if true`, even temporarily.
-3. **Verify the live connection.** `npm start`, then load http://localhost:8000 in a headless
+3. **Verify the live connection.** A live check writes participant records into a project
+   that may already hold real data, so ask first: say how many test runs you will do, and
+   afterwards tell the student exactly which documents to delete (they are the ones whose
+   `prolific_pid` is empty and whose ids you just reported). Prefer `npm test` against the
+   emulator for anything that does not specifically need the live project. `npm start`, then load http://localhost:8000 in a headless
    browser (Playwright is installed) and read `window.__saver.mode` and `window.__saver.reason`
    after `window.__saver.docId` is set. Expect `mode === "firebase"`. Then run through the
    experiment (`tests/experiment.spec.js` shows how) and check `window.__saver.stats.writes_failed === 0`.

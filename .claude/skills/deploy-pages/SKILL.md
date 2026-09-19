@@ -12,8 +12,12 @@ deploy; pushing to `main` is the deploy.
 ## Steps
 
 1. Make sure `npm test` passes and `firebase-config.js` is filled in, then push to `main`.
-2. Student, in the browser: **repo → Settings → Pages → Build and deployment → Source:
-   Deploy from a branch → Branch `main`, folder `/ (root)` → Save.** The repo must be public
+2. **The student enables Pages, not you.** Even if you hold a token that could do it through
+   the GitHub API, do not: it is an account setting on a repository they own, it can fire
+   against the wrong repository, and the point of this template is that the student's GitHub
+   and Google accounts never have to be wired to anything. Give them this and wait:
+   **repo → Settings → Pages → Build and deployment → Source: Deploy from a branch →
+   Branch `main`, folder `/ (root)` → Save.** The repo must be public
    (private repos need a paid plan for Pages). Ask them to paste the URL Pages shows,
    normally `https://<org>.github.io/<repo>/`.
 3. Verify from the terminal:

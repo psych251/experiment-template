@@ -130,6 +130,22 @@ Do not: load plugins from unpkg/jsdelivr; use `jsPsych.init` (v6); use `jsPsych.
 (v7 immediate form, removed); write Firestore directly from trial code; put `on_finish` data
 saving anywhere except through `DataSaver`.
 
+## Ask before deciding these
+
+They are methodological choices the student has to defend in a writeup, and an agent
+rewriting a study will otherwise quietly make all of them:
+
+- dropping or keeping a measure from the demo (the feedback questions, the comments box);
+- exclusion criteria and their thresholds;
+- counterbalancing and randomization scheme;
+- trial counts, timings, and response windows;
+- anything that changes what a participant is asked to do.
+
+Propose a default, say what you would pick and why, and wait. Likewise, do not edit
+`README.md` or `docs/` unless the task is about them: a timeline change does not license a
+documentation rewrite. Retargeting `analysis/analysis.Rmd` and the test **is** part of the
+task, because the study will not run or analyse without it.
+
 ## Reporting back
 
 Tell the student: what the timeline does now (numbered list of trials), which fields carry

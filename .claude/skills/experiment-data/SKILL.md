@@ -26,6 +26,12 @@ Use `identifiers.csv` (Prolific id) to reconcile a participant across records.
    new private key**, saved outside the repo (e.g. `~/keys/<project>-service-account.json`).
    Never copy it into the repo, never print its contents, never paste it in chat. If it is
    ever committed, tell the student to delete the key in the Google Cloud console immediately.
+
+   **Ask for the path; do not go looking for it.** Do not list, glob, grep or read
+   `~/keys/` or any other directory hunting for a key, and do not open one you stumble
+   across: it may belong to a different project, or to someone else's work. Wait for the
+   student to give you the path, then check that the key's `project_id` matches the
+   `projectId` in `firebase-config.js` before exporting, and say so if it does not.
 2. Run:
    ```bash
    npm run export -- --experiment <EXPERIMENT.id> --key <path-to-key>

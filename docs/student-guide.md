@@ -194,8 +194,9 @@ The **config object** is six lines telling your page which Firebase project to t
    your settings, and you stay in offline mode with no error explaining why. Leave the
    comments above it untouched. Save.
 
-5. Check your work: `grep PASTE_ME firebase-config.js` should print nothing, and `npm test`
-   should still pass.
+5. Check your work: `grep '"PASTE_ME' firebase-config.js` should print nothing, and
+   `npm test` should still pass. (Match the quote as shown: a plain `grep PASTE_ME` also
+   finds the word in the comments above, which stay there on purpose.)
 6. Commit and push:
 
    ```bash
@@ -287,6 +288,13 @@ instead of seeing the "All done" screen. Test runs (`npm test` and anything with
 
 Check the whole thing with Prolific's **Preview** link before publishing the study.
 
+If saving fails for a participant, they do **not** get redirected: they see the completion
+code together with a request to download their data and email it to you. That is deliberate,
+since they did the work and should be paid, but it means a Prolific submission is not by
+itself proof that you have their data. Before approving a batch, compare the number of
+completed rows in your export with the number of submissions, and check your inbox for
+rescued files.
+
 **Pilot A and Pilot B.** Use a different `EXPERIMENT.id` for each phase, and run the course's
 pilot checklists as usual.
 
@@ -364,10 +372,12 @@ trials, set `requires_keyboard: false` in `experiment.js`.
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | Red banner: "placeholder values" | `firebase-config.js` not filled in | Section 2.5 |
-| Red banner mentioning `operation-not-allowed` | Anonymous sign-in not enabled | Section 2.4 |
-| Red banner mentioning `permission-denied` | Rules not published, or test-mode rules expired | Section 2.3 |
+| Red banner saying "Enable Anonymous sign-in" (the code reads `admin-restricted-operation` or `operation-not-allowed`) | Anonymous sign-in not enabled | Section 2.4 |
+| Red banner saying the database refused the write (`permission-denied`) | Rules never published | Section 2.3 |
+| That same banner appearing suddenly, about a month after you created the project, having worked until then | The project was created in test mode and those rules have now expired | Paste `firebase/firestore.rules` on the Rules tab and Publish (section 2.3) |
 | Banner is gone but data still does not appear | You pasted over `window.FIREBASE_CONFIG = {` and renamed it | Section 2.5, step 4 |
 | `npm test` fails: "Executable doesn't exist" | Test browser not downloaded | `npx playwright install chromium`, then `npm test` |
+| `npm test` fails with "command not found" or missing modules | `npm install` has not been run in this clone | `npm install`, then `npm test` |
 | `npm test` fails mentioning Java, or "Could not start emulator" | Java missing or too old | Install Java 17+ from <https://adoptium.net>. Not the version macOS suggests. |
 | `npm test` fails right after you set your completion code | Should no longer happen; test runs stay on the page | If it does, check you did not remove the `!USE_EMULATOR` condition in `experiment.js` |
 | Page is blank on the github.io address but fine locally | A path starting with `/`, or Pages not enabled, or repo is private | Section 3; make every path relative |
