@@ -29,6 +29,11 @@ firestore-debug.log
 ui-debug.log
 *-debug.log
 
+# knitted analysis output: regenerate it with Knit rather than committing it
+analysis/*.html
+analysis/*_files/
+analysis/*_cache/
+
 # test output
 test-results/
 playwright-report/

@@ -261,6 +261,43 @@ test.describe("experiment", () => {
     await expect(page.locator("#device-unsupported")).toHaveCount(0);
   });
 
+  test("a write the database refuses is announced on the page, not only in the console", async ({ page }) => {
+    test.skip(!EMULATOR, "needs the Firestore emulator");
+    // Regression test for the state a student is in when they skip publishing the rules, or
+    // once test-mode rules expire: sign-in succeeds, so the page used to look perfectly
+    // healthy from consent to debrief and only admitted the problem on the last screen.
+    await page.goto("/?emulator=1");
+    await page.waitForFunction(() => window.__saver && window.__saver.docId);
+    // Emulator runs carry an informational banner; what must be absent is a failure banner.
+    await expect(page.locator('#data-saver-banner[data-kind="offline"]')).toHaveCount(0);
+
+    // Force a genuine permission-denied on a normal save path by aiming the participant
+    // document at someone else's id, which the rules refuse exactly as deny-all rules would.
+    await page.evaluate(async () => {
+      window.__saver.docId = "someone-else-deadbeef";
+      await window.__saver.updateParticipant({ blocked: true });
+    });
+
+    const banner = page.locator("#data-saver-banner");
+    await expect(banner).toBeVisible();
+    await expect(banner).toHaveAttribute("data-kind", "offline");
+    await expect(banner).toContainText("NOT being saved");
+    await expect(banner).toContainText("permission-denied");
+    await expect(banner).toContainText("2.3");
+    expect(await page.evaluate(() => window.__saver.stats.writes_failed)).toBeGreaterThan(0);
+  });
+
+  test("the download fallback tells the participant where to send the file", async ({ page }) => {
+    await page.goto(EMULATOR ? "/?emulator=1" : "/");
+    await page.waitForFunction(() => window.__saver && window.__saver.docId);
+    await page.evaluate(() => window.__saver._offerDownload(null, "[]"));
+    const box = page.locator("#data-saver-fallback");
+    await expect(box).toBeVisible();
+    await expect(box).toContainText("@");                       // a contact address is present
+    await expect(box).toContainText("you will be paid");
+    await expect(box.getByRole("link")).toHaveAttribute("href", /^mailto:/);
+  });
+
   test("security rules reject reads and writes to other participants", async ({ page }) => {
     test.skip(!EMULATOR, "needs the Firestore emulator");
     await page.goto("/?emulator=1");

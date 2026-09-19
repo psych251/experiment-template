@@ -78,6 +78,7 @@ if (USE_EMULATOR && URL_PARAMS.get("cc")) EXPERIMENT.prolific_completion_code = 
     chunk_size: CHUNK_SIZE,
     save_full_data_at_end: EXPERIMENT.save_full_data_at_end,
     use_emulator: USE_EMULATOR,
+    contact_email: EXPERIMENT.contact_email,
   });
   window.__saver = saver; // for debugging and the automated test
 

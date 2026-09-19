@@ -110,6 +110,7 @@
           use_emulator: false,
           emulator_host: "localhost",
           firebase_config: window.FIREBASE_CONFIG,
+          contact_email: null,   // shown in the download-fallback box
           show_banner: true,
         },
         opts || {}
@@ -126,6 +127,7 @@
       this.currentTrialIndex = null;
       this.pending = [];
       this.stats = { writes_ok: 0, writes_failed: 0, errors_logged: 0 };
+      this._writeFailureReported = false;
       this.allTrials = [];
       this.params = urlParams();
       this._errorCount = 0;
@@ -172,7 +174,8 @@
         const msg = (e && e.code) || (e && e.message) || String(e);
         let hint = "";
         if (/operation-not-allowed|admin-restricted/.test(msg)) {
-          hint = " Enable Anonymous sign-in: Firebase console -> Authentication -> Sign-in method.";
+          hint = " Enable Anonymous sign-in: Firebase console -> Security -> Authentication ->" +
+                 " Sign-in method -> Anonymous (student guide step 2.4).";
         } else if (/api-key|invalid-api-key/.test(msg)) {
           hint = " Check firebase-config.js against the console.";
         } else if (/network|timed out/.test(msg)) {
@@ -339,6 +342,7 @@
         .then(() => { this.stats.writes_ok += 1; })
         .catch((e) => {
           this.stats.writes_failed += 1;
+          this._reportWriteFailure(e);
           this.logError(e, { during: label, kind: "write-failure" });
         });
       this.pending.push(attempt);
@@ -349,6 +353,30 @@
       return attempt;
     }
 
+    /*
+     * Sign-in failures were visible immediately (a banner) but write failures were not: with
+     * rules that deny writes, the page looked completely healthy from consent to debrief and
+     * only admitted the problem on the final screen. That is the state a student is in if they
+     * skip publishing the rules, or once test-mode rules expire mid-collection, so it has to
+     * be visible the moment the first write fails.
+     */
+    _reportWriteFailure(error) {
+      if (this._writeFailureReported) return;
+      this._writeFailureReported = true;
+      const msg = (error && error.message) || String(error);
+      let text = "Data is NOT being saved to the server. See the browser console for details.";
+      if (/permission-denied/.test(msg)) {
+        text =
+          "Data is NOT being saved: the database refused the write (permission-denied). " +
+          "Researcher: publish firebase/firestore.rules in the Firebase console " +
+          "(student guide step 2.3). If the project was created in test mode, those rules " +
+          "expire 30 days after the project was created.";
+      } else if (/quota|resource-exhausted/i.test(msg)) {
+        text = "Data is NOT being saved: this Firebase project has hit its free daily write limit. " +
+               "Researcher: raise chunk_size in experiment.js; writes resume tomorrow.";
+      }
+      if (this.opts.show_banner) showBanner(text, "offline");
+    }
     _installErrorHandlers() {
       const self = this;
       window.addEventListener("error", function (ev) {
@@ -379,9 +407,12 @@
       const why = this.mode === "offline" ? this.reason
         : this.stats.writes_timed_out ? "the connection to the server was lost before saving finished"
         : "some writes to Firestore failed (" + this.stats.writes_failed + ")";
+      const email = this.opts.contact_email;
       box.innerHTML =
         "<p><strong>Your data was not saved to the server</strong> (" + why + ").</p>" +
-        "<p>Please download the file below and send it to the researcher.</p>";
+        "<p>Please download the file below and send it to the researcher" +
+        (email ? " at <a href=\"mailto:" + email + "\">" + email + "</a>" : "") +
+        ". You have still completed the study, and you will be paid.</p>";
       const btn = document.createElement("button");
       btn.className = "jspsych-btn";
       btn.textContent = "Download data (JSON)";

@@ -22,7 +22,10 @@ const copies = [
 const versions = {};
 for (const [from, to] of copies) {
   const src = path.join(root, "node_modules", from);
-  fs.copyFileSync(src, path.join(lib, to));
+  // Strip sourceMappingURL comments: the .map files are not vendored, so they would 404 in
+  // devtools, and they show up as phantom external references in security sweeps of lib/.
+  const text = fs.readFileSync(src, "utf8").replace(/^\s*\/\/# sourceMappingURL=.*$/gm, "");
+  fs.writeFileSync(path.join(lib, to), text);
   const pkgName = from.startsWith("@") ? from.split("/").slice(0, 2).join("/") : from.split("/")[0];
   const pkg = JSON.parse(fs.readFileSync(path.join(root, "node_modules", pkgName, "package.json"), "utf8"));
   versions[pkgName] = pkg.version;
