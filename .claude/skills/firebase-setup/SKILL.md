@@ -34,7 +34,11 @@ message:
   and the Cloud console asks for a parent organization that does not exist. That is policy,
   not a bug. They need a personal account.
 
-Ask them to tell you when all five are done. Everything below is yours.
+Give them the five headings by name (2.1 Create the project, 2.2 Create the database,
+2.3 Publish the security rules, 2.4 Enable anonymous sign-in, 2.5 Register a web app) so they
+can follow along, rather than reproducing the click-by-click text, which goes stale. If they
+get stuck on one, walk that step inline and say which screen you expect them to be looking
+at. Ask them to tell you when all five are done. Everything below is yours.
 
 ## What you do
 
