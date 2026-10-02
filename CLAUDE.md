@@ -65,6 +65,12 @@ all of them would be a problem in someone else's hands. Treat them as hard rules
   scope decision, not a cleanup. Before dropping or reshaping a measure, a condition, an
   exclusion rule, or a counterbalancing scheme, ask: those are the student's methodological
   choices and they have to defend them in a writeup.
+- **The report's text is the student's.** Course policy is that students write all of the text
+  in their report themselves. Do not write, rewrite, paraphrase or "polish" any prose in
+  `writeup/replication-report.qmd`, even when asked; say why, and offer comments on their
+  draft instead (what is unclear, missing, or inconsistent with the data or the
+  preregistration). Code, tables and figures in the report are fine to work on. Record any work
+  you do in the AI use statement's table, or remind the student to.
 - **Pushing.** Check `git remote -v` points at the class organization before the first push.
   Do not offer to commit or push when the tree is clean.
 

@@ -379,7 +379,7 @@ You write the report across the whole project, not at the end:
 | Pilot A | Render with your pilot data. This is the point of Pilot A: proving your analysis runs on data your experiment actually produces. |
 | Preregistration | Register the Introduction and Methods on OSF before final data collection, then add the link to the Project links box. Leave the Methods addendum out of what you register. |
 | Phase 1 complete | Phase 1 **Methods addendum** (actual sample, deviations), **Results** (with the side-by-side plot) and **Discussion**. The Phase 1 row of **Key statistics** fills in from your data. |
-| Extension proposal | Phase 2 **Rationale**, **Changes from Phase 1**, **Power and sample**, **Budget** and **Analysis plan**, following the Extension guidelines page on Canvas. |
+| Extension proposal | Phase 2 **Rationale**, **Changes from Phase 1**, **Power and sample** and **Analysis plan**, following the Extension guidelines page on Canvas. |
 | Phase 2 | Change `EXPERIMENT.id` in `experiment.js` to a new id (for example `smith2016-phase2`), set `experiment_id_phase2` at the top of the report to match, run the study, export it, and write the Phase 2 **Results** and **Discussion**. The Phase 2 row of Key statistics fills in. |
 | Throughout | Keep the **AI use statement** current. Finish with the data and code availability statement at the end. |
 
@@ -398,10 +398,14 @@ Some things to know:
   table with a category, and everything else stays identical: same materials, wording,
   procedure, exclusion rule and analysis. The report analyses both phases with the same code, so
   they stay comparable. Run Phase 2 under its own experiment id so its data never mix with
-  Phase 1's, and plan its budget around the balance the course staff give you.
+  Phase 1's.
 - **The replication judgment is about effect size.** Base your summary on how the size of your
   effect compares with the original's, with confidence intervals, not only on whether your key
   test is significant.
+- **You write all of the report's text yourself.** That is course policy. AI tools may help
+  with code, and may comment on drafts you have written, but may not write, rewrite or
+  paraphrase the text. The coding agent in this repository is told the same thing, so asking
+  it to draft a section will get you comments rather than text.
 - **The AI use statement is required, and comes first.** List every AI tool you used,
   including coding agents, what each was used for, and how you checked what it produced. It
   sits at the top of the report so readers see it before anything else. Fill it in as you go;

@@ -45,7 +45,7 @@ the relevant chapters are in `references/`; read the ones you need before writin
      and has a power analysis for the new comparison). Every change is in the Changes table
      with a category; diff `experiment.js` against the Phase 1 version and flag anything that
      changed but is not listed. The expected estimate and precision relative to Phase 1 are
-     stated; exploratory measures come at the end; the budget fits the stated balance.
+     stated; exploratory measures come at the end.
 2. **Write a study summary** (≤10 lines) before judging anything: original finding being
    replicated; hypothesis; IV(s) and their levels and whether within/between; DV(s) and the
    exact trial fields that record them; planned N and how it was chosen; the key
@@ -107,6 +107,10 @@ overlap on consent and debriefing; report each such issue once, citing both.
 Pitch it for a first-year. Six precise findings they act on beat twenty they skim: keep the
 reasoning to a sentence, cut anything that is a general methods lecture rather than a change
 to this project, and put the effort into the "Top three" being genuinely the top three.
+
+Course policy is that students write all of their report's text themselves. Findings describe
+what to change and why; never supply replacement sentences or paragraphs for the report, and
+do not offer to rewrite a section.
 
 Rules for findings: one issue per bullet; concrete and local (a file, a trial, a section
 of the writeup); cite the chapter section every time; no generic advice that does not
