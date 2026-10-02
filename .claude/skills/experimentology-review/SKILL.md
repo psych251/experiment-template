@@ -27,15 +27,25 @@ the relevant chapters are in `references/`; read the ones you need before writin
 1. **Inventory the project.** Read `README`, `experiment.js` (or the experiment source),
    the stimuli folder listing, the data pipeline (`src/save.js`, `scripts/export.js`,
    `.gitignore`, anything under `data/`), the replication report (`writeup/replication-report.qmd`, whose Results section is the analysis), and any
-   writeup or preregistration (`writeup/`, `original_paper/`, `prereg`). Note what is missing.
+   writeup or preregistration (`writeup/`, `prereg`). The original paper is not committed; if a
+   local, gitignored `original_paper/` folder exists, read it, otherwise ask the student for a
+   copy or work from the citation. Note what is missing.
    Then decide the **phase** from what exists and from what the student says:
    - *Pre-Pilot A*: no writeup or prereg yet. Review logging, analysis-code readiness,
      consent, and data handling. Skip checklist items marked "needs writeup" and list the
      prereg/power items once under "Should fix" as work to do before Pilot B, not as failures.
    - *Pre-Pilot B / pre-final*: prereg draft exists. Everything applies; a missing power
      justification, stopping rule, or exclusion rule is "Must fix".
-   - *Post-collection*: also check that the writeup reports deviations and separates
+   - *Phase 1 complete*: also check that the writeup reports deviations and separates
      confirmatory from exploratory analyses.
+   - *Extension proposal*: check the Phase 2 sections against the Extension guidelines: the
+     track is stated and justified (a rescue addresses plausible reasons for a failed
+     replication; an upgrade improves precision; a scientific extension needs an approved pitch
+     and a successful replication, reruns the original conditions unchanged plus one addition,
+     and has a power analysis for the new comparison). Every change is in the Changes table
+     with a category; diff `experiment.js` against the Phase 1 version and flag anything that
+     changed but is not listed. The expected estimate and precision relative to Phase 1 are
+     stated; exploratory measures come at the end; the budget fits the stated balance.
 2. **Write a study summary** (≤10 lines) before judging anything: original finding being
    replicated; hypothesis; IV(s) and their levels and whether within/between; DV(s) and the
    exact trial fields that record them; planned N and how it was chosen; the key
@@ -56,13 +66,14 @@ the relevant chapters are in `references/`; read the ones you need before writin
 6. **Citations you did not read are claims, not facts.** Attributing a finding, an
    experiment number, or a statistic to a paper that is not in the repository is the one
    error this review reliably makes, and being wrong in a confident review is worse than
-   saying less. Cite only what is in `original_paper/` or the student's own materials.
+   saying less. Cite only what is in the original paper (if you have been given it) or the
+   student's own materials.
    Anything else gets "(from memory, verify)" attached to that sentence, and a claim you
    cannot attach to a specific paper and experiment should be cut rather than hedged.
-7. **Facts about the original study.** If `original_paper/` (or the paper's text) is in the
+7. **Facts about the original study.** If you have the paper's text (a local `original_paper/` folder or a copy the student gave you), use it. If it is in the
    repo, cite it. If it is not, you may use what you know about the original, but mark each
-   such fact "(from memory, verify against the paper)" and add "put the original paper in
-   `original_paper/`" as a Should-fix item.
+   such fact "(from memory, verify against the paper)". Never suggest committing the paper to
+   the repository: it is public, and the paper is deliberately kept out of it.
 7. **Consent text.** `references/consent-text.md` is the canonical course consent. Compare
    it with the study's first screen; only the contact address may differ.
 
@@ -116,6 +127,8 @@ provide, instead of reviewing what is not there.
 - The writeup is `writeup/replication-report.qmd`. It must name the key statistical test in
   advance, justify the planned sample size against the original effect, list deviations from
   the original as a table, judge the replication on effect sizes with intervals rather than on
-  significance alone, link the preregistration and the live experiment, and include a data
-  and code availability statement and an AI use statement. Grey "Guidance" boxes left in the
+  significance alone, include a figure showing the original finding and the replication side
+  by side, link the preregistration and the live experiment, open with an AI use statement,
+  and close with a data and code availability statement. A missing side-by-side figure is a
+  Should-fix finding. Grey "Guidance" boxes left in the
   rendered report mean a section has not been written.

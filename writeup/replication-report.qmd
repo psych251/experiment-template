@@ -24,14 +24,21 @@ Every project uses this structure so that reports are comparable across the clas
 become public supplementary material, so write for a reader who has the original paper but
 not your repository.
 
-The Introduction and Methods are written, critiqued, and preregistered BEFORE data collection.
-Render this file at every stage: before you have data the Results section says so and skips
-itself; during Pilot A it runs your analysis on pilot data, which is the point of Pilot A.
+The project has two phases, and so does this report:
+  Phase 1, the replication. Introduction and Methods are written, critiqued and preregistered
+           BEFORE data collection; the Methods addendum, Results and Discussion after it.
+  Phase 2, the extension. Proposed after Phase 1 (Rationale, Changes from Phase 1, Power and
+           sample, Budget, Analysis plan), then run, with its own Results and Discussion.
+The AI use statement and the Key statistics table sit at the top and are kept current
+throughout. Follow the Extension guidelines page on Canvas for Phase 2.
+
+Render this file at every stage. Before a phase has data, its results say so and skip
+themselves; during Pilot A the Phase 1 results run on pilot data, which is the point of Pilot A.
 
 Grey "Guidance" boxes are instructions. Delete each one once you have written that section.
 The code is wired to the template's demo experiment (the framing problem). Replace the demo
-specifics with your study's as you go: the experiment id, the original study's numbers, the
-exclusion rule, and the confirmatory analysis.
+specifics with your study's as you go: the experiment ids, the original study's numbers, the
+exclusion rule, and the key comparison.
 -->
 
 ```{r}
@@ -41,18 +48,17 @@ library(tidyverse)
 library(jsonlite)
 
 # Must match EXPERIMENT.id in experiment.js, and the --experiment you passed to the export.
-experiment_id <- "framing-demo"
-
-raw_dir <- file.path("..", "data", "raw", experiment_id)
-have_data <- all(file.exists(file.path(raw_dir, c("participants.csv", "trials.csv"))))
+# Phase 2 runs under its own id, so its data never mix with Phase 1's.
+experiment_id        <- "framing-demo"
+experiment_id_phase2 <- "framing-demo-phase2"
 ```
 
 ```{r}
 #| label: original-study
 #| include: false
-# The original study's numbers, entered once and used by the power analysis and by the
-# replication assessment. Replace these with your original study's values, and say in a
-# comment exactly where in the paper each one comes from.
+# The original study's numbers, entered once and used by the power analysis, the Key
+# statistics table, and the side-by-side figures. Replace these with your original study's
+# values, and say in a comment exactly where in the paper each one comes from.
 #
 # Tversky & Kahneman (1981), Problem 1 (gain frame, N = 152): 72% chose the certain program,
 # 28% the risky one. Problem 2 (loss frame, N = 155): 22% certain, 78% risky. The paper
@@ -75,6 +81,153 @@ original_p_loss <- original$risky[original$condition == "loss"] / original$n[ori
 - **Live experiment:** <https://psych251.github.io/your-repo/> (take the study exactly as participants did)
 - **Repository:** <https://github.com/psych251/your-repo> (experiment code, data, and this report)
 :::
+
+# AI use statement
+
+::: {.callout-tip icon=false}
+## Guidance
+
+This statement comes first so a reader knows how the work was produced before reading it. Keep
+it current from the start of the project rather than reconstructing it at the end. List every
+AI tool you used on this project, what you used it for, and how you checked what it
+produced. Include coding assistants (for example Claude Code, Codex, Copilot), chat assistants,
+and writing or editing tools. Name the model and version where you know it. "How you checked"
+is the important column: say what you verified yourself, not that the output "looked right".
+If you used no AI tools, replace the table with a sentence saying so.
+:::
+
+| Tool and model | What it was used for | How you checked the output |
+|---|---|---|
+| *e.g., Claude Code (Claude Opus 5)* | *Implemented the experiment from the original Methods section* | *Ran the automated tests; took the study myself; compared every screen with the original materials* |
+| *e.g., Claude Code (Claude Opus 5)* | *Drafted the analysis code* | *Checked the exclusion counts by hand; confirmed the key test matches the preregistration* |
+| *e.g., ChatGPT* | *Suggested edits to the Introduction* | *Rewrote the text myself and checked every citation against the source* |
+
+AI tools were not used to generate, alter, or impute any participant data. I take full
+responsibility for the content of this report, including any errors introduced by AI tools.
+
+# Key statistics
+
+::: {.callout-tip icon=false}
+## Guidance
+
+One row per study for the key comparison: the original, your Phase 1 replication, and your
+Phase 2 extension. The table fills itself in from the data as each phase is exported, using the
+analysis code below (open "Show the analysis code"), which is shared by both phases so they are
+analysed identically. Edit that code once, here, to match your design and preregistered
+exclusion rule. On the scientific-extension track, the Phase 2 row reports the new comparison:
+adapt its code and say so in the caption.
+:::
+
+```{r}
+#| label: analysis-functions
+#| code-summary: "Show the analysis code (shared by Phase 1 and Phase 2)"
+
+# Load one phase's exported data and apply the exclusion rule. Returns NULL if that phase
+# has not been exported yet, which is how every section below knows to skip itself.
+read_phase <- function(id) {
+  dir <- file.path("..", "data", "raw", id)
+  if (!all(file.exists(file.path(dir, c("participants.csv", "trials.csv"))))) return(NULL)
+  participants <- read_csv(file.path(dir, "participants.csv"), show_col_types = FALSE)
+  trials       <- read_csv(file.path(dir, "trials.csv"), show_col_types = FALSE)
+  errors_path  <- file.path(dir, "errors.csv")
+  errors <- if (file.exists(errors_path)) read_csv(errors_path, show_col_types = FALSE) else tibble()
+
+  complete <- participants |> filter(completed)
+
+  # Exclusion rule: replace with the rule you preregistered. Here: at least 6 of 8
+  # lexical-decision trials correct, and at least one speeded response at all (a session in
+  # which every speeded trial timed out is what a device without a keyboard produces).
+  ld <- trials |>
+    filter(task == "lexical_decision") |>
+    group_by(participant_id) |>
+    summarise(ld_acc           = mean(as.logical(correct), na.rm = TRUE),
+              ld_all_timed_out = all(as.logical(timed_out)),
+              .groups = "drop")
+  checked <- complete |> left_join(ld, by = "participant_id")
+  keep <- checked |> filter(!is.na(ld_acc), !ld_all_timed_out, ld_acc >= 0.75)
+
+  list(participants = participants, trials = trials, errors = errors,
+       complete = complete, keep = keep,
+       n_no_response = sum(checked$ld_all_timed_out %in% TRUE))
+}
+
+# The key comparison's raw counts: how many analysed participants chose the risky program
+# in each frame.
+risky_counts <- function(d) {
+  d$trials |>
+    filter(task == "framing", participant_id %in% d$keep$participant_id) |>
+    group_by(condition) |>
+    summarise(risky = sum(choice == "risky"), n = n(), .groups = "drop")
+}
+
+# The key statistic: difference in the proportion choosing the risky program (loss minus
+# gain) with a 95% CI, and the uncorrected chi-square, which is the same test. NULL until
+# both frames have at least one analysed participant.
+diff_ci <- function(counts) {
+  loss <- counts[counts$condition == "loss", ]
+  gain <- counts[counts$condition == "gain", ]
+  if (nrow(loss) == 0 || nrow(gain) == 0) return(NULL)
+  pt <- prop.test(c(loss$risky, gain$risky), c(loss$n, gain$n), correct = FALSE)
+  tibble(N = loss$n + gain$n,
+         estimate = unname(pt$estimate[1] - pt$estimate[2]),
+         ci_low = pt$conf.int[1], ci_high = pt$conf.int[2],
+         statistic = unname(pt$statistic), p = pt$p.value)
+}
+
+# Side-by-side figure: any number of studies on the same axes, in the order given.
+prop_ci <- function(x, n) {
+  ci <- prop.test(x, n, correct = FALSE)$conf.int
+  tibble(p = x / n, low = ci[1], high = ci[2])
+}
+comparison_plot <- function(...) {
+  studies <- list(...)
+  studies <- studies[!map_lgl(studies, ~ is.null(.x) || nrow(.x) == 0)]
+  df <- imap_dfr(studies, ~ mutate(.x, Study = .y)) |>
+    rowwise() |> mutate(prop_ci(risky, n)) |> ungroup() |>
+    mutate(Study = factor(Study, levels = names(studies)), label = sprintf("n = %d", n))
+  fills <- setNames(c("grey55", "#1E6E76", "#B8792A")[seq_along(studies)], names(studies))
+  dodge <- position_dodge(width = 0.8)
+  ggplot(df, aes(x = condition, y = p, fill = Study)) +
+    geom_col(position = dodge, width = 0.75) +
+    geom_errorbar(aes(ymin = low, ymax = high), position = dodge, width = 0.2) +
+    geom_text(aes(y = 0.02, label = label), position = dodge, vjust = 0, size = 3, colour = "white") +
+    scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+    scale_fill_manual(values = fills) +
+    labs(x = "Frame", y = "Chose the risky program", fill = NULL) +
+    theme_minimal(base_size = 12) +
+    theme(legend.position = "top")
+}
+
+phase1 <- read_phase(experiment_id)
+phase2 <- read_phase(experiment_id_phase2)
+have_data   <- !is.null(phase1)
+have_phase2 <- !is.null(phase2)
+```
+
+```{r}
+#| label: key-stats
+#| echo: false
+fmt_row <- function(study, r) {
+  if (is.null(r)) {
+    return(tibble(Study = study, N = "", `Effect (loss − gain)` = "not yet collected",
+                  `95% CI` = "", `χ²(1)` = "", p = ""))
+  }
+  tibble(Study = study, N = as.character(r$N),
+         `Effect (loss − gain)` = sprintf("%.0f points", 100 * r$estimate),
+         `95% CI` = sprintf("[%.0f, %.0f]", 100 * r$ci_low, 100 * r$ci_high),
+         `χ²(1)` = sprintf("%.2f", r$statistic),
+         p = format.pval(r$p, digits = 2, eps = 0.001))
+}
+bind_rows(
+  fmt_row("Original", diff_ci(original)),
+  fmt_row("Phase 1: replication", if (have_data) diff_ci(risky_counts(phase1))),
+  fmt_row("Phase 2: extension", if (have_phase2) diff_ci(risky_counts(phase2)))
+) |>
+  knitr::kable(align = "lrlllr",
+               caption = "Key comparison: difference in the percentage of analysed participants choosing the risky program, loss frame minus gain frame.")
+```
+
+# Phase 1: Replication
 
 ## Introduction
 
@@ -206,7 +359,7 @@ level of detail expected; replace them with yours.
 ## Guidance
 
 Leave this section out of the version you preregister. After data collection, report the
-actual sample and any departure from the plan above.
+actual sample and any deviation from the plan above.
 :::
 
 #### Actual sample
@@ -218,7 +371,7 @@ actual sample and any departure from the plan above.
 if (!have_data) {
   cat(
     "::: {.callout-warning icon=false}\n",
-    "## No data yet\n\n",
+    "## No Phase 1 data yet\n\n",
     "There are no exported data for `", experiment_id, "` yet, so the sample and results ",
     "sections are skipped. This is expected before data collection. Export with ",
     "`npm run export -- --experiment ", experiment_id, " --key <path to your key>` and render again. ",
@@ -229,33 +382,16 @@ if (!have_data) {
 ```
 
 ```{r}
-#| label: load-and-exclude
+#| label: phase1-data
 #| eval: !expr have_data
-participants <- read_csv(file.path(raw_dir, "participants.csv"), show_col_types = FALSE)
-trials       <- read_csv(file.path(raw_dir, "trials.csv"), show_col_types = FALSE)
-errors_path  <- file.path(raw_dir, "errors.csv")
-errors <- if (file.exists(errors_path)) read_csv(errors_path, show_col_types = FALSE) else tibble()
-
-complete <- participants |> filter(completed)
-
-# Exclusion rule: replace with the rule you preregistered.
-ld_accuracy <- trials |>
-  filter(task == "lexical_decision") |>
-  group_by(participant_id) |>
-  summarise(
-    ld_acc           = mean(as.logical(correct), na.rm = TRUE),
-    ld_all_timed_out = all(as.logical(timed_out)),
-    .groups = "drop"
-  )
-
-keep <- complete |>
-  left_join(ld_accuracy, by = "participant_id") |>
-  filter(!is.na(ld_acc), !ld_all_timed_out, ld_acc >= 0.75)
-
-n_no_response <- complete |>
-  left_join(ld_accuracy, by = "participant_id") |>
-  filter(ld_all_timed_out %in% TRUE) |>
-  nrow()
+# Loaded and excluded by read_phase(), under Key statistics, so Phase 1 and Phase 2 share one
+# exclusion rule.
+participants  <- phase1$participants
+trials        <- phase1$trials
+errors        <- phase1$errors
+complete      <- phase1$complete
+keep          <- phase1$keep
+n_no_response <- phase1$n_no_response
 ```
 
 ```{r}
@@ -311,13 +447,13 @@ if (nrow(demo) > 0) {
 }
 ```
 
-#### Differences from the pre-data-collection plan
+#### Deviations from the preregistered plan
 
 ::: {.callout-tip icon=false}
 ## Guidance
 
-Any difference from the plan above, or "None". Changes made after seeing data belong here even
-if they seem minor, together with the reason.
+Any deviation from the preregistered plan above, or "None". Changes made after seeing data
+belong here even if they seem minor, together with the reason.
 :::
 
 ## Results
@@ -327,9 +463,9 @@ if they seem minor, together with the reason.
 ::: {.callout-tip icon=false}
 ## Guidance
 
-Data preparation follows the analysis plan. The code that loads the exported data and applies
-the exclusions is in the *Actual sample* section above; open it with "Show code". Describe
-anything you did to the data beyond that.
+Data preparation follows the analysis plan. Loading and exclusions are done by the shared
+analysis code under Key statistics (open "Show the analysis code"). Describe anything you did to
+the data beyond that.
 :::
 
 ### Confirmatory analysis
@@ -340,20 +476,14 @@ anything you did to the data beyond that.
 framing <- trials |>
   filter(task == "framing", participant_id %in% keep$participant_id) |>
   select(participant_id, condition, choice)
-
-risky <- framing |>
-  group_by(condition) |>
-  summarise(risky = sum(choice == "risky"), n = n(), .groups = "drop")
-
+risky <- risky_counts(phase1)
 tab <- table(Frame = framing$condition, Choice = framing$choice)
-have_both <- all(c("gain", "loss") %in% risky$condition)
 
 if (all(dim(tab) == c(2, 2))) {
   # No continuity correction, so this test and the effect-size interval below agree: the
   # uncorrected 2 x 2 chi-square is the same test as the two-proportion comparison.
-  chi <- chisq.test(tab, correct = FALSE)
   print(tab)
-  print(chi)
+  print(chisq.test(tab, correct = FALSE))
 } else {
   message("Chi-square not run: the frame-by-choice table is ", paste(dim(tab), collapse = " x "),
           ". It needs both frames and both choices; with ", nrow(framing),
@@ -370,30 +500,17 @@ Judge the replication on effect sizes, not only on whether the key test is signi
 the replication estimate and its interval with the original: does the interval exclude zero, and
 does it include the original estimate? A significant result much smaller than the original, or
 a non-significant result whose interval still includes the original effect, are both
-informative and should be reported as such (Experimentology §3.2). Replace the plot's demo data
-with your original study's values at the top of this file.
+informative and should be reported as such (Experimentology §3.2).
 :::
 
 ```{r}
 #| label: comparison
 #| eval: !expr have_data
-diff_ci <- function(x_loss, n_loss, x_gain, n_gain) {
-  pt <- prop.test(c(x_loss, x_gain), c(n_loss, n_gain), correct = FALSE)
-  tibble(estimate = unname(pt$estimate[1] - pt$estimate[2]),
-         ci_low = pt$conf.int[1], ci_high = pt$conf.int[2], p = pt$p.value)
-}
+orig <- diff_ci(original)
+rep  <- diff_ci(risky)
 
-orig <- diff_ci(original$risky[original$condition == "loss"], original$n[original$condition == "loss"],
-                original$risky[original$condition == "gain"], original$n[original$condition == "gain"]) |>
-  mutate(Study = "Original", N = sum(original$n))
-
-if (have_both && all(risky$n > 0)) {
-  rep <- diff_ci(risky$risky[risky$condition == "loss"], risky$n[risky$condition == "loss"],
-                 risky$risky[risky$condition == "gain"], risky$n[risky$condition == "gain"]) |>
-    mutate(Study = "Replication", N = sum(risky$n))
-  comparison <- bind_rows(orig, rep)
-
-  comparison |>
+if (!is.null(rep)) {
+  bind_rows(orig |> mutate(Study = "Original"), rep |> mutate(Study = "Phase 1: replication")) |>
     transmute(Study, N,
               `Difference (loss − gain)` = sprintf("%.0f points", 100 * estimate),
               `95% CI` = sprintf("[%.0f, %.0f]", 100 * ci_low, 100 * ci_high),
@@ -401,7 +518,6 @@ if (have_both && all(risky$n > 0)) {
     knitr::kable(caption = "Effect size: difference in the percentage choosing the risky program.")
 } else {
   message("Replication effect size not computed yet: need at least one analysed participant in each frame.")
-  comparison <- orig
 }
 ```
 
@@ -410,7 +526,7 @@ if (have_both && all(risky$n > 0)) {
 #| eval: !expr have_data
 #| echo: false
 #| results: asis
-if (exists("rep")) {
+if (!is.null(rep)) {
   excludes_zero <- rep$ci_low > 0 | rep$ci_high < 0
   includes_orig <- orig$estimate >= rep$ci_low & orig$estimate <= rep$ci_high
   cat(sprintf(
@@ -422,36 +538,45 @@ if (exists("rep")) {
 }
 ```
 
+::: {.callout-tip icon=false}
+## Guidance: show the original next to your replication
+
+**Every report should have a figure that puts the original finding and your replication side by
+side.** It is the single most informative thing in a replication report: a reader can see at a
+glance whether the effect came back, and how its size compares. Make it however you can, in
+roughly this order of preference:
+
+1. **Replot both from numbers.** Enter the original's summary statistics (means or proportions,
+   with SDs, SEs or CIs, and Ns) in the original-study chunk at the top of this file, and plot
+   them on the same axes as yours. That is what the demo figure below does.
+2. **Replot the original from its data**, if the authors shared it or it is in an open
+   repository, using exactly the same plotting code as for your own data.
+3. **Show the original figure as an image** next to yours if neither is possible. Save a
+   screenshot of it, for example as `writeup/images/original-figure.png`, and lay the two out
+   in columns:
+
+   ````markdown
+   ::: {layout-ncol=2}
+   ![Original: Tversky & Kahneman (1981), Figure 1](images/original-figure.png)
+
+   ```{{r}}
+   # your replication plot here
+   ```
+   :::
+   ````
+
+Whichever you choose, use the same measure, scale, condition order and error-bar meaning for
+both panels, label which is which, and cite the source of the original values or figure in the
+caption. If the original reported no variability, say so rather than leaving it out silently.
+:::
+
 ```{r}
 #| label: fig-comparison
 #| eval: !expr have_data
-#| fig-cap: "Percentage choosing the risky program in each frame, original study and replication. Error bars are 95% confidence intervals."
+#| fig-cap: "Percentage choosing the risky program in each frame, original study and Phase 1 replication. Error bars are 95% confidence intervals."
 #| fig-width: 7
 #| fig-height: 4
-prop_ci <- function(x, n) {
-  ci <- prop.test(x, n, correct = FALSE)$conf.int
-  tibble(p = x / n, low = ci[1], high = ci[2])
-}
-plot_df <- bind_rows(
-  original |> mutate(Study = "Original"),
-  if (nrow(risky) > 0) risky |> mutate(Study = "Replication")
-) |>
-  rowwise() |>
-  mutate(prop_ci(risky, n)) |>
-  ungroup() |>
-  mutate(Study = factor(Study, levels = c("Original", "Replication")),
-         label = sprintf("n = %d", n))
-
-ggplot(plot_df, aes(x = condition, y = p, fill = Study)) +
-  geom_col(position = position_dodge(width = 0.75), width = 0.7) +
-  geom_errorbar(aes(ymin = low, ymax = high), position = position_dodge(width = 0.75), width = 0.2) +
-  geom_text(aes(y = 0.02, label = label), position = position_dodge(width = 0.75),
-            vjust = 0, size = 3, colour = "white") +
-  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
-  scale_fill_manual(values = c(Original = "grey55", Replication = "#1E6E76")) +
-  labs(x = "Frame", y = "Chose the risky program", fill = NULL) +
-  theme_minimal(base_size = 12) +
-  theme(legend.position = "top")
+comparison_plot(Original = original, `Phase 1: replication` = risky)
 ```
 
 ### Exploratory analyses
@@ -516,7 +641,230 @@ definitely, plausibly, or unlikely to be moderators of the result; and (c) any o
 challenges raised by you or the original authors.
 :::
 
-## Data and code availability
+# Phase 2: Extension
+
+::: {.callout-tip icon=false}
+## Guidance: choosing your extension
+
+Follow the Extension guidelines page on Canvas. In brief:
+
+- **By default the extension is a best-practices modification of your Phase 1 experiment.** If
+  your replication did not succeed, it is a **rescue**: address the plausible reasons for the
+  failure. If it did succeed, it is an **upgrade**: make the estimate more precise. Typical
+  changes are better or more reliable measurement, more trials, a within-participant design
+  where that is legitimate, comprehension and manipulation checks, clearer instructions, or a
+  larger or better-targeted sample.
+- **If your scientific extension pitch was approved at Milestone 3 and your replication
+  succeeded, propose that instead:** the original conditions rerun unchanged, plus the one
+  added condition or manipulation, with a power analysis for the new comparison.
+- On either track you may add exploratory measures **at the end** of the study.
+- Every change is listed and tagged by category below; everything else stays identical.
+
+State your track on the line below, and delete the others.
+:::
+
+**Track:** Best-practices upgrade / Best-practices rescue / Scientific extension (approved at Milestone 3)
+
+## Rationale
+
+::: {.callout-tip icon=false}
+## Guidance
+
+One or two paragraphs. For a rescue: what are the plausible reasons Phase 1 did not reproduce the
+original result, and how does each change address one of them? For an upgrade: where is the
+Phase 1 estimate least precise or least trustworthy, and how will the changes improve it? For a
+scientific extension: what question does the added condition answer, and why does it follow from
+the original finding?
+:::
+
+## Changes from Phase 1
+
+::: {.callout-tip icon=false}
+## Guidance
+
+Every change from the Phase 1 experiment, one per row, each tagged with a category: Measurement,
+Trials, Design, Checks, Instructions, Sample, Added condition (scientific track only), or
+Exploratory measure (end of study only). If it is not in this table, it does not change: same
+materials, wording, procedure, exclusion rule and analysis. The rows below are examples for the
+demo; replace them with yours.
+:::
+
+| # | Category | Phase 1 | Phase 2 | Why |
+|---|---|---|---|---|
+| 1 | Sample | 27 analysed participants | 300 analysed participants (150 per frame) | Phase 1's interval was too wide to distinguish the original effect from a much smaller one. |
+| 2 | Checks | No comprehension check | After the choice, participants say how many people are at risk (600) | Confirms participants read the scenario; failures are reported, and excluded only if preregistered. |
+| 3 | Exploratory measure | None | At the end: "How confident are you in your choice?" (1–7) | Exploratory only; collected after every confirmatory measure. |
+
+Everything not listed above is identical to Phase 1.
+
+## Power and sample
+
+::: {.callout-tip icon=false}
+## Guidance
+
+Justify the Phase 2 sample, and **state how you expect the estimate and its precision to compare
+with Phase 1**. For an upgrade, plan the sample around the confidence interval you want; for a
+rescue, around the power to detect the original effect, or the smallest effect you would still
+consider a successful replication; for a scientific extension, around the power to detect the new
+comparison. Set `phase2_n_per_group` in the code below; the table uses Phase 1's estimate if you
+have it and the original's otherwise.
+:::
+
+```{r}
+#| label: phase2-power
+phase2_n_per_group <- 150   # planned analysed participants per condition in Phase 2
+
+p1_counts <- if (have_data) risky_counts(phase1)
+p1_stats  <- if (have_data) diff_ci(p1_counts)
+basis <- if (!is.null(p1_stats)) {
+  list(gain = p1_counts$risky[p1_counts$condition == "gain"] / p1_counts$n[p1_counts$condition == "gain"],
+       loss = p1_counts$risky[p1_counts$condition == "loss"] / p1_counts$n[p1_counts$condition == "loss"],
+       source = "Phase 1")
+} else {
+  list(gain = original_p_gain, loss = original_p_loss, source = "the original study")
+}
+
+# Expected 95% CI half-width on the difference at n per condition.
+half_width <- function(n) 1.96 * sqrt(basis$gain * (1 - basis$gain) / n + basis$loss * (1 - basis$loss) / n)
+power_at <- function(n, p1, p2) {
+  tryCatch(power.prop.test(n = n, p1 = p1, p2 = p2, sig.level = 0.05)$power, error = function(e) NA)
+}
+
+rows <- tibble(
+  Study = c(if (!is.null(p1_stats)) "Phase 1 (actual)", "Phase 2 (planned)"),
+  `N analysed` = c(if (!is.null(p1_stats)) p1_stats$N, 2 * phase2_n_per_group),
+  `95% CI half-width` = c(if (!is.null(p1_stats)) sprintf("±%.0f points", 100 * (p1_stats$ci_high - p1_stats$ci_low) / 2),
+                          sprintf("±%.0f points (expected)", 100 * half_width(phase2_n_per_group)))
+)
+knitr::kable(rows, caption = sprintf("Precision of the key estimate, Phase 2 expected values based on %s.", basis$source))
+
+tibble(
+  `Effect to detect` = c(sprintf("Original: %.0f points", 100 * (original_p_loss - original_p_gain)),
+                         if (!is.null(p1_stats)) sprintf("Phase 1: %.0f points", 100 * p1_stats$estimate),
+                         sprintf("Half the original: %.0f points", 50 * (original_p_loss - original_p_gain))),
+  `Power at planned N` = scales::percent(c(
+    power_at(phase2_n_per_group, original_p_gain, original_p_loss),
+    if (!is.null(p1_stats)) power_at(phase2_n_per_group, basis$gain, basis$loss),
+    power_at(phase2_n_per_group, original_p_gain, original_p_gain + (original_p_loss - original_p_gain) / 2)
+  ), accuracy = 1)
+) |>
+  knitr::kable(caption = sprintf("Power of the Phase 2 key test at %d per condition, two-sided alpha = .05.", phase2_n_per_group))
+```
+
+## Budget
+
+::: {.callout-tip icon=false}
+## Guidance
+
+The Phase 2 budget must fit what remains after Phase 1; the course staff will tell you your
+balance. Set the inputs below. For the expected duration, start from Phase 1's median completion
+time (shown in the table) and add time for anything Phase 2 adds; time a pilot run if in doubt.
+Pay must meet the course's minimum hourly rate, and check the recruitment platform's current
+service fee rather than assuming one.
+:::
+
+```{r}
+#| label: budget
+phase2_minutes    <- 5      # expected Phase 2 duration in minutes (see Phase 1's median below)
+pay_per_hour      <- 12.00  # USD per hour; use the course's required rate
+service_fee       <- 0.33   # platform fee as a fraction of participant pay: check current pricing
+remaining_balance <- NA     # USD; set to the balance the course staff give you
+expected_exclusion_rate <- if (have_data) 1 - nrow(phase1$keep) / max(nrow(phase1$complete), 1) else 0.15
+
+phase1_minutes <- if (have_data) {
+  d <- phase1$participants |> filter(completed)
+  as.numeric(median(difftime(d$ended_at, d$started_at, units = "mins")), units = "mins")
+} else NA
+n_recruit <- ceiling(2 * phase2_n_per_group / (1 - expected_exclusion_rate))
+pay_each  <- round(pay_per_hour * phase2_minutes / 60, 2)
+total     <- n_recruit * pay_each * (1 + service_fee)
+
+tibble(
+  Item = c("Phase 1 median completion time (reference)", "Expected Phase 2 duration",
+           "Participants to recruit (planned analysed N, allowing for exclusions)",
+           "Pay per participant", "Total including service fee", "Remaining balance"),
+  Value = c(if (is.na(phase1_minutes)) "no Phase 1 data yet" else
+              sprintf("%.1f minutes%s", phase1_minutes,
+                      if (phase1_minutes < 1) " (implausibly short: test runs in the data?)" else ""),
+            sprintf("%.1f minutes", phase2_minutes),
+            sprintf("%d (expected exclusion rate %.0f%%)", n_recruit, 100 * expected_exclusion_rate),
+            sprintf("$%.2f", pay_each),
+            sprintf("$%.2f", total),
+            if (is.na(remaining_balance)) "set remaining_balance" else
+              sprintf("$%.2f (%s)", remaining_balance, if (total <= remaining_balance) "fits" else "OVER BUDGET"))
+) |> knitr::kable(caption = "Phase 2 budget.")
+```
+
+## Analysis plan
+
+::: {.callout-tip icon=false}
+## Guidance
+
+The confirmatory analysis for Phase 2, written before Phase 2 data collection. On the
+best-practices tracks this is normally the same key test as Phase 1, run on the Phase 2 data
+alone; say whether you will also report a pooled estimate across phases, and label it
+exploratory if so. On the scientific track, specify the test for the new comparison. Name the
+exclusion rule (unchanged unless it is in the Changes table) and list any exploratory measures.
+
+Run Phase 2 under a new `EXPERIMENT.id` in `experiment.js` (for example `smith2016-phase2`) and
+set `experiment_id_phase2` at the top of this file to match, so the two phases' data never mix.
+:::
+
+## Results
+
+```{r}
+#| label: phase2-notice
+#| echo: false
+#| results: asis
+if (!have_phase2) {
+  cat(
+    "::: {.callout-warning icon=false}\n",
+    "## No Phase 2 data yet\n\n",
+    "There are no exported data for `", experiment_id_phase2, "` yet, so the Phase 2 results are ",
+    "skipped. Export with `npm run export -- --experiment ", experiment_id_phase2,
+    " --key <path to your key>` once Phase 2 has run.\n",
+    ":::\n", sep = "")
+}
+```
+
+```{r}
+#| label: phase2-results
+#| eval: !expr have_phase2
+p2_counts <- risky_counts(phase2)
+p2_stats  <- diff_ci(p2_counts)
+cat(sprintf("Phase 2: %d started, %d completed, %d analysed.\n",
+            nrow(phase2$participants), nrow(phase2$complete), nrow(phase2$keep)))
+if (!is.null(p2_stats)) {
+  p_text <- if (p2_stats$p < 0.001) "p < .001" else sprintf("p = %.3f", p2_stats$p)
+  cat(sprintf("Key comparison: %.0f points [%.0f, %.0f], chi-square(1) = %.2f, %s.\n",
+              100 * p2_stats$estimate, 100 * p2_stats$ci_low, 100 * p2_stats$ci_high,
+              p2_stats$statistic, p_text))
+}
+```
+
+```{r}
+#| label: fig-phase2
+#| eval: !expr have_phase2
+#| fig-cap: "Percentage choosing the risky program in each frame: original study, Phase 1 replication, and Phase 2 extension. Error bars are 95% confidence intervals."
+#| fig-width: 8
+#| fig-height: 4
+comparison_plot(Original = original,
+                `Phase 1: replication` = if (have_data) risky_counts(phase1),
+                `Phase 2: extension` = risky_counts(phase2))
+```
+
+## Discussion
+
+::: {.callout-tip icon=false}
+## Guidance
+
+Compare Phase 2 with Phase 1 and with the original, using the Key statistics table and the figure
+above. Did the precision improve as you expected? For a rescue, did addressing the plausible
+reasons recover the effect? For a scientific extension, what does the new condition show? End
+with what the two phases together say about the original finding.
+:::
+
+# Data and code availability
 
 ::: {.callout-tip icon=false}
 ## Guidance
@@ -530,24 +878,3 @@ report are available at <https://github.com/psych251/your-repo>. The experiment 
 taken at <https://psych251.github.io/your-repo/>. The data contain no names, email addresses,
 IP addresses, or Prolific IDs; the file linking participants to their Prolific IDs is kept
 privately for payment and is not shared.
-
-## AI use statement
-
-::: {.callout-tip icon=false}
-## Guidance
-
-List every AI tool you used on this project, what you used it for, and how you checked what it
-produced. Include coding assistants (for example Claude Code, Codex, Copilot), chat assistants,
-and writing or editing tools. Name the model and version where you know it. "How you checked"
-is the important column: say what you verified yourself, not that the output "looked right".
-If you used no AI tools, replace the table with a sentence saying so.
-:::
-
-| Tool and model | What it was used for | How you checked the output |
-|---|---|---|
-| *e.g., Claude Code (Claude Opus 5)* | *Implemented the experiment from the original Methods section* | *Ran the automated tests; took the study myself; compared every screen with the original materials* |
-| *e.g., Claude Code (Claude Opus 5)* | *Drafted the analysis code* | *Checked the exclusion counts by hand; confirmed the key test matches the preregistration* |
-| *e.g., ChatGPT* | *Suggested edits to the Introduction* | *Rewrote the text myself and checked every citation against the source* |
-
-AI tools were not used to generate, alter, or impute any participant data. I take full
-responsibility for the content of this report, including any errors introduced by AI tools.

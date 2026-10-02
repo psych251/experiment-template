@@ -353,9 +353,18 @@ script is you. It is the one real secret in this whole setup.
 ## 7. Write your replication report
 
 Your report is `writeup/replication-report.qmd`, a **Quarto** document: text and R code in one
-file, which RStudio turns into a web page. It follows the standard replication-report structure
-used for every project in the course, and it is also where your analysis lives: the Results
-section reads the CSVs from section 6 and computes everything itself.
+file, which RStudio turns into a web page. It is also where your analysis lives: its results
+sections read the CSVs from section 6 and compute everything themselves.
+
+The project has two phases, and the report has a part for each:
+
+- **Phase 1, the replication**, in the standard replication-report structure used for every
+  project in the course.
+- **Phase 2, the extension**: a modification of your Phase 1 experiment, proposed once Phase 1
+  is done. Follow the Extension guidelines page on Canvas.
+
+At the top sit the **AI use statement** and the **Key statistics** table, which has one row each
+for the original study, Phase 1 and Phase 2 and fills itself in as each phase is exported.
 
 **Render it** by opening it in RStudio and pressing **Render** (`Cmd+Shift+K` /
 `Ctrl+Shift+K`). The output, `writeup/replication-report.html`, is self-contained, so you can
@@ -365,11 +374,14 @@ You write the report across the whole project, not at the end:
 
 | When | What to write |
 | --- | --- |
-| Proposal | Fill in the **Project links** box and the **Introduction**. Put the paper in `original_paper/`. |
-| Before Pilot A | **Methods**: power analysis, planned sample, materials, procedure, analysis plan, and the **differences from the original** table. Enter the original study's numbers in the code chunk near the top, which the power analysis and the final comparison both use. Edit the Results code to match your design. |
+| Proposal | Fill in the **Project links** box and the **Introduction**, and start the **AI use statement** at the top. |
+| Before Pilot A | **Methods**: power analysis, planned sample, materials, procedure, analysis plan, and the **differences from the original** table. Enter the original study's numbers in the code chunk near the top, which the power analysis and the side-by-side figure both use. Edit the Results code to match your design. |
 | Pilot A | Render with your pilot data. This is the point of Pilot A: proving your analysis runs on data your experiment actually produces. |
 | Preregistration | Register the Introduction and Methods on OSF before final data collection, then add the link to the Project links box. Leave the Methods addendum out of what you register. |
-| After data collection | **Methods addendum**, **Results**, **Discussion**, and the two statements at the end. |
+| Phase 1 complete | Phase 1 **Methods addendum** (actual sample, deviations), **Results** (with the side-by-side plot) and **Discussion**. The Phase 1 row of **Key statistics** fills in from your data. |
+| Extension proposal | Phase 2 **Rationale**, **Changes from Phase 1**, **Power and sample**, **Budget** and **Analysis plan**, following the Extension guidelines page on Canvas. |
+| Phase 2 | Change `EXPERIMENT.id` in `experiment.js` to a new id (for example `smith2016-phase2`), set `experiment_id_phase2` at the top of the report to match, run the study, export it, and write the Phase 2 **Results** and **Discussion**. The Phase 2 row of Key statistics fills in. |
+| Throughout | Keep the **AI use statement** current. Finish with the data and code availability statement at the end. |
 
 Some things to know:
 
@@ -377,13 +389,27 @@ Some things to know:
   section. A box left in your final report means a section was not done.
 - **It renders before you have data.** The Results section shows a "No data yet" box and skips
   itself, so you can render and share your Methods for feedback from the start.
-- **The replication judgment is about effect size.** The report puts the original effect and
-  yours side by side, with confidence intervals, in a table and a plot. Base your summary on
-  that comparison, not only on whether your key test is significant.
-- **The AI use statement is required.** List every AI tool you used, including coding agents,
-  what each was used for, and how you checked what it produced. Fill it in as you go; it is
-  much harder to reconstruct at the end.
-- **The repository is public**, and `original_paper/` explains what that means for the PDF.
+- **Show the original next to your replication.** Every report should include a figure with
+  the original finding and yours side by side, on the same scale. Replot both from the
+  original's reported numbers if you can, replot the original from its data if the authors
+  shared it, and otherwise place a screenshot of the original figure next to your plot. The
+  report's guidance shows how to do each.
+- **Phase 2 changes exactly what you list.** Every change from Phase 1 goes in the Changes
+  table with a category, and everything else stays identical: same materials, wording,
+  procedure, exclusion rule and analysis. The report analyses both phases with the same code, so
+  they stay comparable. Run Phase 2 under its own experiment id so its data never mix with
+  Phase 1's, and plan its budget around the balance the course staff give you.
+- **The replication judgment is about effect size.** Base your summary on how the size of your
+  effect compares with the original's, with confidence intervals, not only on whether your key
+  test is significant.
+- **The AI use statement is required, and comes first.** List every AI tool you used,
+  including coding agents, what each was used for, and how you checked what it produced. It
+  sits at the top of the report so readers see it before anything else. Fill it in as you go;
+  it is much harder to reconstruct at the end.
+- **Do not commit the original paper.** The repository is public and most papers cannot be
+  redistributed. Cite it with its DOI in the Project links box. If you want a local copy for
+  yourself or your agent, put it in an `original_paper/` folder, which is set up never to be
+  committed.
 
 ---
 

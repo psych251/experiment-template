@@ -18,10 +18,19 @@ skills in `.claude/skills/` for the detailed procedures.
   to `allow read, write: if true`; debug with the emulator instead (`npm run emulators`).
 - `scripts/export.js` pulls data to CSV with the Admin SDK (needs a service-account key,
   which is gitignored and must never be committed).
-- `writeup/replication-report.qmd` is the replication report (Quarto). Its Results section
-  is the analysis: it reads the exported CSVs, so there is no separate analysis file. It must
-  render with no data (before collection) as well as with data.
-- `original_paper/` holds the paper being replicated. The repo is public: check the licence.
+- `writeup/replication-report.qmd` is the replication report (Quarto), covering Phase 1 (the
+  replication) and Phase 2 (the extension). Its results sections are the analysis: they read the
+  exported CSVs, so there is no separate analysis file. Both phases use the shared functions
+  under "Key statistics" (`read_phase`, `risky_counts`, `diff_ci`, `comparison_plot`), so the
+  exclusion rule and key comparison are defined once. It must render with no data, with Phase 1
+  only, and with both phases.
+- Phase 2 runs under its own `EXPERIMENT.id`; `experiment_id_phase2` in the report must match.
+  When modifying the experiment for Phase 2, change exactly what the report's "Changes from
+  Phase 1" table lists and nothing else, and ask before adding anything to that table.
+- The paper being replicated is never committed (the repo is public). A student may keep a
+  local copy in `original_paper/`, which is gitignored; read it there if it exists, or ask.
+- The report's AI use statement sits at the top and should be kept current: when you do
+  substantial work on the project, remind the student to record it there.
 - `tests/experiment.spec.js` is a Playwright robot that plays the whole experiment.
 
 ## Commands

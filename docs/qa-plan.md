@@ -139,8 +139,9 @@ from the previous run, which makes it a rerun rather than a fresh participant.
 | G2 | `git status`. | `identifiers.csv` is **not** listed (gitignored). The other files are. |
 | G3 | Open `participants.csv` and `trials.csv`. | No Prolific ids, no URL parameters, no IP addresses anywhere. `qa123` from E3 appears only in `identifiers.csv`. |
 | G4 | Copy the key file into the repo folder under a name containing `service-account` and run `git status`. | Not listed. Delete the copy. |
-| G5 | Open `writeup/replication-report.qmd` in RStudio, set `author:` and `experiment_id`, install anything missing, **Render**. | Renders to HTML with the power-analysis table, a three-row exclusion funnel by condition, an N summary line, demographics, the chi-square, an effect-size table comparing the original with the replication, and a side-by-side plot. |
+| G5 | Open `writeup/replication-report.qmd` in RStudio, set `author:` and `experiment_id`, install anything missing, **Render**. | Renders to HTML with the AI statement and Key statistics table at the top (Phase 1 row filled, Phase 2 "not yet collected"), the power-analysis table, a three-row exclusion funnel by condition, an N summary line, demographics, the chi-square, an effect-size table comparing the original with the replication, and a side-by-side plot. |
 | G5b | Render again with only one or two participants in the data, then with the data folder moved away entirely. | Still renders both times; with no data the Results section shows a "No data yet" box. Every analysis it cannot run prints a sentence saying what is missing; nothing is silently blank. |
+| G5c | Export a second run under a new `EXPERIMENT.id` (e.g. `qa-phase2`), set `experiment_id_phase2` in the report to match, and render. | The Phase 2 row of Key statistics fills in, Phase 2 Results shows its sample and key comparison, and a three-study side-by-side figure appears. |
 | G6 | Commit the CSVs and push. | Actions still pass. |
 
 ## Block H: student guide read-through (20 min)
@@ -198,7 +199,7 @@ C1 C2 C3 C4 C5 C6 C7 C7b C8 C9
 D1 D2 D3
 E1 E2 E3 E4 E5 E6 E7
 F1 F2 F3 F4 F5 F6 F7 F8 F9
-G1 G2 G3 G4 G5 G5b G6
+G1 G2 G3 G4 G5 G5b G5c G6
 H  (issues filed: ____)
 I1 I2 I3 I4 I5 I6
 Block timings (minutes): A__ B__ C__ D__ E__ F__ G__ H__ I__

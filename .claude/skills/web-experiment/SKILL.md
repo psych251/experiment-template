@@ -132,6 +132,21 @@ Do not: load plugins from unpkg/jsdelivr; use `jsPsych.init` (v6); use `jsPsych.
 (v7 immediate form, removed); write Firestore directly from trial code; put `on_finish` data
 saving anywhere except through `DataSaver`.
 
+## Phase 2 (the extension)
+
+Phase 2 modifies the Phase 1 experiment, and the course rule is that every change is listed and
+tagged in the report's "Changes from Phase 1" table while everything else stays identical. So:
+
+- Read that table first. Implement exactly the rows it lists and nothing else.
+- Before changing anything not in the table, ask; if the student agrees, they add the row.
+- Set a new `EXPERIMENT.id` (for example `smith2016-phase2`) and check `experiment_id_phase2` in
+  the report matches.
+- Exploratory measures go at the **end** of the study, after every confirmatory measure.
+- On the scientific-extension track, the original conditions run unchanged and one condition
+  is added; update the report's `risky_counts`/`diff_ci` functions only if the key comparison
+  changes, and say so.
+- Afterwards, `git diff <phase-1 commit> -- experiment.js` should show only the listed changes.
+
 ## Ask before deciding these
 
 They are methodological choices the student has to defend in a writeup, and an agent

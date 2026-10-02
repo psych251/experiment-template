@@ -41,8 +41,7 @@ npm test           # robot participant + emulator; 10 tests, should pass out of 
 | `lib/` | Pinned browser builds of jsPsych, its plugins, and a bundled Firebase SDK (`lib/VERSIONS.json`). |
 | `scripts/export.js` | Firestore to CSV via the Admin SDK. |
 | `scripts/serve.js` | Local static server (`npm start`). |
-| `writeup/replication-report.qmd` | The replication report (Quarto). Its Results section reads the exported CSVs and runs the analysis. |
-| `original_paper/` | The paper you are replicating and any materials from its authors. |
+| `writeup/replication-report.qmd` | The report (Quarto): Phase 1 replication and Phase 2 extension. Its results sections read the exported CSVs and run the analysis. |
 | `tests/` | Playwright end-to-end test (`npm test`). |
 | `.claude/skills/` | Agent skills: building experiments, Firebase setup, deploying, data, and design review. |
 | `docs/student-guide.md` | The human walkthrough, including the things that usually go wrong. |
