@@ -18,7 +18,10 @@ skills in `.claude/skills/` for the detailed procedures.
   to `allow read, write: if true`; debug with the emulator instead (`npm run emulators`).
 - `scripts/export.js` pulls data to CSV with the Admin SDK (needs a service-account key,
   which is gitignored and must never be committed).
-- `analysis/analysis.Rmd` is the R analysis stub.
+- `writeup/replication-report.qmd` is the replication report (Quarto). Its Results section
+  is the analysis: it reads the exported CSVs, so there is no separate analysis file. It must
+  render with no data (before collection) as well as with data.
+- `original_paper/` holds the paper being replicated. The repo is public: check the licence.
 - `tests/experiment.spec.js` is a Playwright robot that plays the whole experiment.
 
 ## Commands

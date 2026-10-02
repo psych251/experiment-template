@@ -31,8 +31,10 @@ in `src/save.js` and must not be bypassed.
      the demo's `condition` assignment, drop the `condition` assertions in the test, and record
      another participant-level fact instead (e.g. `design: "within-subjects"`, key mapping).
      `scripts/export.js` tolerates a missing `condition` column.
-   - When replacing the demo entirely, also retarget `analysis/analysis.Rmd`, `README.md`, and
-     `docs/student-guide.md`, and `grep -rn framing-demo` to catch stale ids.
+   - When replacing the demo entirely, also retarget the code in
+     `writeup/replication-report.qmd`: `experiment_id`, the original study's numbers, the
+     exclusion rule, and the confirmatory analysis. Then `grep -rn framing-demo` for stale ids.
+     Leave the report's prose and the README and guide alone unless asked (see Boundaries).
 4. **Stimuli**: put files in `stimuli/` and load with the `preload` plugin as the first trial
    after consent. Reference them with relative paths (`stimuli/img1.png`, no leading slash)
    because GitHub Pages serves the site under `/<repo>/`. Keep the repo under a few hundred MB;
@@ -143,7 +145,7 @@ rewriting a study will otherwise quietly make all of them:
 
 Propose a default, say what you would pick and why, and wait. Likewise, do not edit
 `README.md` or `docs/` unless the task is about them: a timeline change does not license a
-documentation rewrite. Retargeting `analysis/analysis.Rmd` and the test **is** part of the
+documentation rewrite. Retargeting the report's code and the test **is** part of the
 task, because the study will not run or analyse without it.
 
 ## Reporting back

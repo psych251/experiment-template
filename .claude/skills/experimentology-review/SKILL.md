@@ -26,7 +26,7 @@ the relevant chapters are in `references/`; read the ones you need before writin
 
 1. **Inventory the project.** Read `README`, `experiment.js` (or the experiment source),
    the stimuli folder listing, the data pipeline (`src/save.js`, `scripts/export.js`,
-   `.gitignore`, anything under `data/`), the analysis (`analysis/*.Rmd` or similar), and any
+   `.gitignore`, anything under `data/`), the replication report (`writeup/replication-report.qmd`, whose Results section is the analysis), and any
    writeup or preregistration (`writeup/`, `original_paper/`, `prereg`). Note what is missing.
    Then decide the **phase** from what exists and from what the student says:
    - *Pre-Pilot A*: no writeup or prereg yet. Review logging, analysis-code readiness,
@@ -113,6 +113,9 @@ provide, instead of reviewing what is not there.
   requires a preregistration on OSF. Reviews before Pilot A should stress logging and
   analysis-code readiness; reviews before final collection should stress the
   preregistration and power.
-- The writeup follows the replication-report template: the key statistical test named in
-  advance, a planned sample size with a power justification tied to the original effect,
-  and an explicit list of deviations from the original study.
+- The writeup is `writeup/replication-report.qmd`. It must name the key statistical test in
+  advance, justify the planned sample size against the original effect, list deviations from
+  the original as a table, judge the replication on effect sizes with intervals rather than on
+  significance alone, link the preregistration and the live experiment, and include a data
+  and code availability statement and an AI use statement. Grey "Guidance" boxes left in the
+  rendered report mean a section has not been written.

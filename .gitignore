@@ -29,10 +29,12 @@ firestore-debug.log
 ui-debug.log
 *-debug.log
 
-# knitted analysis output: regenerate it with Knit rather than committing it
-analysis/*.html
-analysis/*_files/
-analysis/*_cache/
+# rendered report output: regenerate it with Render rather than committing it
+writeup/*.html
+writeup/*_files/
+writeup/*_cache/
+writeup/.quarto/
+.quarto/
 
 # test output
 test-results/
